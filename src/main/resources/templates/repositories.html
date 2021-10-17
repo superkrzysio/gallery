@@ -1,0 +1,19 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Index Page</title>
+</head>
+<body>
+<form action="repositories/add" method="post">
+    <table>
+        <tr>
+            <td><label for="path">Repository path</label></td>
+            <td><input type="text" name="path" id="path"></input></td>
+            <td><input type="submit" value="Add"></input></td>
+        </tr>
+    </table>
+    <ol>
+        <li th:each="repository : ${repositories}"><a th:href="'/repositories/view/' + ${repository.getId()}" th:text="${repository.path}"></a></li>
+    </ol>
+</form>
+</body>
+</html>
