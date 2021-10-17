@@ -3,6 +3,7 @@ package kw.tools.gallery.models;
 public class Repository
 {
     private String path;
+
     private String id;
 
     public Repository()
@@ -29,6 +30,11 @@ public class Repository
     public String getId()
     {
         return id;
+    }
+
+    public void setId(String id)
+    {
+        this.id = id;
     }
 
     public String getSafeName()
