@@ -3,6 +3,7 @@ package kw.tools.gallery.controllers;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.processing.DirCrawler;
 import kw.tools.gallery.processing.Thumbnailing;
+import kw.tools.gallery.processing.ThumbnailingFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -24,7 +25,7 @@ public class RepositoryController
     private SessionFactory sessionFactory;
 
     @Autowired
-    private Thumbnailing thumbnailing;
+    private ThumbnailingFactory thumbnailingFactory;
 
     @Autowired
     private DirCrawler dirCrawler;
@@ -79,7 +80,10 @@ public class RepositoryController
             {
                 return new RedirectView("/repositories");
             }
-            dirCrawler.forEach(repository.getPath(), path -> thumbnailing.generate(path));
+            dirCrawler.forEach(repository.getPath(), path -> {
+                thumbnailingFactory.forId(repository.getId()).singleImageThumbs().generate(path);
+                thumbnailingFactory.forId(repository.getId()).multiThumbs().generate(path);
+            } );
 
             session.save(repository);
             tx.commit();

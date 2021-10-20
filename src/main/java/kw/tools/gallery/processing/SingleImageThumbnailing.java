@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.stream.Collectors;
 
 @Component
-public class DefaultThumbnailing implements Thumbnailing
+public class SingleImageThumbnailing extends AbstractThumbnailing
 {
     private ProcessingStatus status = new ProcessingStatus();
 
