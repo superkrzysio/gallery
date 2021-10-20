@@ -26,6 +26,9 @@
         <property name="hbm2ddl.auto">
             update
         </property>
+        <property name="connection.autocommit">
+            false
+        </property>
 
         <mapping resource="mappings.hbm.xml"/>
 
