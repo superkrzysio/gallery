@@ -5,10 +5,21 @@
 
 <hibernate-mapping>
     <class name="kw.tools.gallery.models.Repository" table="Repository">
-
         <id name="id" column="id" type="string"/>
-
         <property name="path" column="path" type="string"/>
+        <set name="galleries" inverse="true" cascade="all" lazy="false">
+            <key column="REPOSITORY_ID" not-null="true"/>
+            <one-to-many class="kw.tools.gallery.models.Gallery"/>
+        </set>
+    </class>
 
+    <class name="kw.tools.gallery.models.Gallery" table="Gallery">
+        <id name="id" column="id" type="string" access="field" />
+        <property name="path" column="path" type="string"/>
+        <property name="name" column="name" type="string"/>
+        <property name="pictureCount" column="pictureCount" type="integer"/>
+        <property name="rating" column="rating" type="integer"/>
+        <many-to-one name="repository" class="kw.tools.gallery.models.Repository"
+                     column="REPOSITORY_ID" not-null="true" lazy="false" />
     </class>
 </hibernate-mapping>

@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -17,8 +20,9 @@ import java.util.stream.Stream;
 public class DefaultDirCrawler implements DirCrawler
 {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultDirCrawler.class);
+
     @Override
-    public void forEach(String path, Consumer<String> action) throws IOException
+    public void forEach(String path, Consumer<Path> action) throws IOException
     {
         try(Stream<Path> filestream = Files.list(Paths.get(path)))
         {
@@ -32,11 +36,20 @@ public class DefaultDirCrawler implements DirCrawler
                 }
                 else if (!executedAlready)
                 {
-                    // if there are any files, execute the action only once on the dir
+                    // if there are any files, execute the action only once on the parent dir
                     executedAlready = true;
-                    action.accept(path);
+                    action.accept(Path.of(path));
                 }
             }
         }
     }
+
+    @Override
+    public Iterator<Path> iterator(String path) throws IOException
+    {
+        Collection<Path> paths = new ArrayList<>();
+        forEach(path, paths::add);
+        return paths.iterator();
+    }
+
 }

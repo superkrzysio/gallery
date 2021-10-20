@@ -1,0 +1,15 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Index Page</title>
+</head>
+<body>
+<h1 th:text="${repository.path}"></h1>
+<table>
+    <tr th:each="gallery : ${repository.galleries}">
+      <td th:text="${gallery.id}"></td>
+      <td th:text="${gallery.path}"></td>
+      <td th:text="${gallery.pictureCount}"></td>
+    </tr>
+  </table>
+</body>
+</html>
