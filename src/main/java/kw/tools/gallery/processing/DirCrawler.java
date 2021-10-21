@@ -8,5 +8,6 @@ import java.util.function.Consumer;
 public interface DirCrawler
 {
     void forEach(String path, Consumer<Path> action) throws IOException;
+
     Iterator<Path> iterator(String path) throws IOException;
 }

@@ -1,17 +1,15 @@
 package kw.tools.gallery.processing;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class SingleImageThumbnailing extends AbstractThumbnailing
 {
-    private ProcessingStatus status = new ProcessingStatus();
+    private final ProcessingStatus status = new ProcessingStatus();
 
     @Value("${cache.dir}")
     private String cacheDir;
@@ -28,20 +26,18 @@ public class SingleImageThumbnailing extends AbstractThumbnailing
     @Value("${thumbnails.singleimage.height}")
     private int height;
 
-    @Override
-    public void generate(String path, String targetId)
-    {
-        try
-        {
-            createDir(path, targetId);
-            List<Path> images = getImages(path);
-            String imstr = images.stream().map(img -> img.getFileName().toString()).collect(Collectors.joining(", "));
-            System.out.println("Path: '" + path + "', images: " + imstr);
+    @Value("${thumbnails.selection.strategy}")
+    private ThumbnailSelector.Strategy selectionStrategy;
 
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
+    @Autowired
+    private ThumbnailSelectionFactory thumbnailSelectionFactory;
+
+    @Override
+    public void generate(String source, String targetId)
+    {
+        List<String> images = getImages(source);
+        images = thumbnailSelectionFactory.get(selectionStrategy, verticalCount * horizontalCount).select(images);
+        // todo
     }
 
     @Override

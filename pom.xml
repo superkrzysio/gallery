@@ -44,8 +44,11 @@
 			<artifactId>hibernate-core</artifactId>
 			<version>5.6.0.Final</version>
 		</dependency>
-
-
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>ij</artifactId>
+			<version>1.53j</version>
+		</dependency>
 
 
 	</dependencies>

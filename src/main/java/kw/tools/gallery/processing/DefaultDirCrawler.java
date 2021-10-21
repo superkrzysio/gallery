@@ -24,17 +24,16 @@ public class DefaultDirCrawler implements DirCrawler
     @Override
     public void forEach(String path, Consumer<Path> action) throws IOException
     {
-        try(Stream<Path> filestream = Files.list(Paths.get(path)))
+        try (Stream<Path> filestream = Files.list(Paths.get(path)))
         {
             List<Path> files = filestream.collect(Collectors.toList());
             boolean executedAlready = false;
             for (Path file : files)
             {
-                if(Files.isDirectory(file))
+                if (Files.isDirectory(file))
                 {
                     forEach(file.toString(), action);
-                }
-                else if (!executedAlready)
+                } else if (!executedAlready)
                 {
                     // if there are any files, execute the action only once on the parent dir
                     executedAlready = true;

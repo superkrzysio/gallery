@@ -9,7 +9,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +34,9 @@ public class RepositoryController
     @Autowired
     private DirCrawler dirCrawler;
 
+    @Autowired
+    private CacheUtils cacheUtils;
+
     private final static Logger LOG = LoggerFactory.getLogger(RepositoryController.class);
 
     @RequestMapping("/repositories")
@@ -48,7 +50,7 @@ public class RepositoryController
         try (Session session = sessionFactory.openSession())
         {
             tx = session.beginTransaction();
-            List<Repository> repos = (List<Repository>) session.createQuery("FROM Repository").list();
+            List<Repository> repos = session.createQuery("FROM Repository").list();
             tx.rollback();
             modelAndView.addObject("repositories", repos);
         } catch (HibernateException e)
@@ -76,9 +78,7 @@ public class RepositoryController
         try (Session session = sessionFactory.openSession())
         {
             tx = session.beginTransaction();
-            Query<Repository> query = session.createQuery("FROM Repository R WHERE R.id=:id");
-            query.setParameter("id", id);
-            Repository repo = query.getSingleResult();
+            Repository repo = session.load(Repository.class, id);
             tx.rollback();
             modelAndView.addObject("repository", repo);
             repo.getGalleries().forEach(g -> System.out.println(g));
@@ -123,15 +123,13 @@ public class RepositoryController
                 System.out.println("Gallery " + gallery.getId() + " saved. Path: " + gallery.getPath());
 
 //                singleImageThumbnailing.generate(path.toString(), repository.getId());
-//                multiImageThumbnailing.generate(path.toString(), repository.getId());
-            } );
-
-            session.save(repository);
+                multiImageThumbnailing.generate(path.toString(), cacheUtils.generateGalleryDir(repository.getId(), gallery.getId()));
+            });
             tx.commit();
             return new RedirectView("/repositories");
         } catch (HibernateException | IOException e)
         {
-            // todo: remove unfinished thumb creation OR introduce transaction layer for files
+            // todo: remove unfinished thumb creation or even introduce transaction layer for files and rollback it
             LOG.error("Failed to add new repository", e);
             return new RedirectView("/repositories?error=1");
         } finally
@@ -142,5 +140,19 @@ public class RepositoryController
             }
             session.close();
         }
+    }
+
+    @RequestMapping("/repositories/delete/{id}")
+    public RedirectView deleteRepository(@PathVariable("id") String id)
+    {
+        Transaction tx = null;
+        try (Session session = sessionFactory.openSession())
+        {
+            tx = session.beginTransaction();
+            Repository repo = session.load(Repository.class, id);
+            session.delete(repo);
+            tx.commit();
+        }
+        return new RedirectView("/repositories");
     }
 }
