@@ -16,6 +16,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Class that crawls through directory structure and performs an action if the directory contains any regular file.
+ */
 @Component
 public class DefaultDirCrawler implements DirCrawler
 {

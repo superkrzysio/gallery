@@ -2,6 +2,8 @@ package kw.tools.gallery.models;
 
 import net.bytebuddy.utility.RandomString;
 
+import java.util.List;
+
 public class Gallery
 {
     private static final int ID_LENGTH = 20;
@@ -10,6 +12,7 @@ public class Gallery
     private String name;
     private int rating;
     private Repository repository;
+    private List<String> thumbnails;        // not persisted
 
     private final String id;
 
@@ -71,5 +74,15 @@ public class Gallery
     public void setRepository(Repository repository)
     {
         this.repository = repository;
+    }
+
+    public List<String> getThumbnails()
+    {
+        return thumbnails;
+    }
+
+    public void setThumbnails(List<String> thumbnails)
+    {
+        this.thumbnails = thumbnails;
     }
 }

@@ -4,6 +4,9 @@ import ij.IJ;
 import ij.ImagePlus;
 import org.springframework.stereotype.Component;
 
+/**
+ * Wrapper for image processing library.
+ */
 @Component
 public class ImgUtils
 {

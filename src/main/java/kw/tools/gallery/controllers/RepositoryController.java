@@ -1,5 +1,6 @@
 package kw.tools.gallery.controllers;
 
+import kw.tools.gallery.CacheUtils;
 import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.processing.AbstractThumbnailing;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class RepositoryController
@@ -79,9 +81,17 @@ public class RepositoryController
         {
             tx = session.beginTransaction();
             Repository repo = session.load(Repository.class, id);
-            tx.rollback();
+            repo.getGalleries().forEach(
+                    gal -> gal.setThumbnails(
+                            multiImageThumbnailing.retrieve(cacheUtils.getCacheDirForGallery(repo.getId(), gal.getId()))
+                                    .stream()
+                                    .map(thumb -> String.format("/cdn/%s/%s/%s", repo.getId(), gal.getId(), thumb))
+                                    // todo: very obfuscated way to refer to other endpoint :(
+                                    .collect(Collectors.toList())
+                    )
+            );
             modelAndView.addObject("repository", repo);
-            repo.getGalleries().forEach(g -> System.out.println(g));
+            tx.rollback();
         } catch (HibernateException e)
         {
             if (tx != null && tx.isActive())

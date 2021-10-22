@@ -1,14 +1,43 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>Index Page</title>
+    <style>
+        .galleryName {
+            font-weight: bold;
+            margin: 10px;
+            font-size: big;
+        }
+        .galleryPath {
+            color: #555555;
+            font-style: italic;
+            font-size: small;
+            margin: 10px;
+        }
+        .thumb {
+            border-width: 2px;
+            border-color: white;
+            border-style: solid;
+        }
+    </style>
 </head>
 <body>
 <h1 th:text="${repository.path}"></h1>
 <table>
     <tr th:each="gallery : ${repository.galleries}">
-      <td th:text="${gallery.id}"></td>
-      <td th:text="${gallery.path}"></td>
-      <td th:text="${gallery.pictureCount}"></td>
+        <table style="margin: 10px;">
+            <tr>
+                <td>
+                    <span class="galleryName" th:text="${gallery.name}"></span>
+                    <span class="galleryPath" th:text="${gallery.path}"></span>
+                    <span class="galleryCount" th:text="'Pic count: ' + ${gallery.pictureCount}"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span th:each="thumb : ${gallery.thumbnails}"><img class="thumb" th:src="${thumb}"/></span>
+                </td>
+            </tr>
+        </table>
     </tr>
   </table>
 </body>

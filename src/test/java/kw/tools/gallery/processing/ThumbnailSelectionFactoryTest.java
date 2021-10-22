@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-class ThumbnailSelectionFactoryTest
+public class ThumbnailSelectionFactoryTest
 {
     private final static ThumbnailSelectionFactory factory = new ThumbnailSelectionFactory();
 

@@ -6,6 +6,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Generates one big image containing some small thumbnails. Only a number of images of the whole gallery are selected
+ * as a representative.
+ */
 @Component
 public class SingleImageThumbnailing extends AbstractThumbnailing
 {
@@ -38,6 +42,12 @@ public class SingleImageThumbnailing extends AbstractThumbnailing
         List<String> images = getImages(source);
         images = thumbnailSelectionFactory.get(selectionStrategy, verticalCount * horizontalCount).select(images);
         // todo
+    }
+
+    @Override
+    public List<String> retrieve(String source)
+    {
+        return null;
     }
 
     @Override

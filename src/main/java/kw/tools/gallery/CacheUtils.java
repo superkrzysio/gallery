@@ -1,4 +1,4 @@
-package kw.tools.gallery.controllers;
+package kw.tools.gallery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +23,19 @@ public class CacheUtils
         return createDir(cacheDir, repositoryId, galleryId);
     }
 
+    public String getCacheDirForGallery(String repoId, String galleryId)
+    {
+        return getCacheDirPathForGallery(repoId, galleryId).toString();
+    }
+
+    public Path getCacheDirPathForGallery(String repoId, String galleryId)
+    {
+        return Path.of(cacheDir).resolve(repoId).resolve(galleryId).toAbsolutePath();
+    }
+
     private static String createDir(String rootDir, String outputDir, String outputId)
     {
-        String fullpath = rootDir + PATH_SEPARATOR + outputDir + PATH_SEPARATOR + outputId;
+        String fullpath = Path.of(rootDir).resolve(outputDir).resolve(outputId).toString();
 
         if (LOG.isDebugEnabled())
         {
