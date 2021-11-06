@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 
 @Component
 public class CacheUtils
@@ -21,6 +22,11 @@ public class CacheUtils
     public String generateGalleryDir(String repositoryId, String galleryId)
     {
         return createDir(cacheDir, repositoryId, galleryId);
+    }
+
+    public Path getCacheDirForRepository(String repositoryId)
+    {
+        return Path.of(cacheDir).resolve(repositoryId);
     }
 
     public String getCacheDirForGallery(String repoId, String galleryId)
@@ -48,6 +54,43 @@ public class CacheUtils
         {
             LOG.error("Could not create cache dir: " + fullpath, e);
             return null;
+        }
+    }
+
+    public void delete(String repositoryId)
+    {
+        try
+        {
+            Files.walk(Path.of(cacheDir).resolve(repositoryId))
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(this::delete);
+        } catch (IOException e)
+        {
+            LOG.error(String.format("Could not traverse repository %s", repositoryId));
+        }
+    }
+
+    public void delete(String repositoryId, String galleryId)
+    {
+        try
+        {
+            Files.walk(Path.of(cacheDir).resolve(repositoryId).resolve(galleryId))
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(this::delete);
+        } catch (IOException e)
+        {
+            LOG.error(String.format("Could not traverse gallery %s in repo %s", galleryId, repositoryId));
+        }
+    }
+
+    private void delete(Path file)
+    {
+        try
+        {
+            Files.delete(file);
+        } catch (IOException e)
+        {
+            LOG.error(String.format("Could not delete file or directory: %s", file), e);
         }
     }
 }

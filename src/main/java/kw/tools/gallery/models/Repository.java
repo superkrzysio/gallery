@@ -1,6 +1,9 @@
 package kw.tools.gallery.models;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Repository
 {
@@ -47,6 +50,11 @@ public class Repository
     public Set<Gallery> getGalleries()
     {
         return galleries;
+    }
+
+    public List<Gallery> getGalleriesSorted()
+    {
+        return galleries.stream().sorted(Comparator.comparing(Gallery::getId)).collect(Collectors.toList());
     }
 
     public void setGalleries(Set<Gallery> galleries)

@@ -23,7 +23,7 @@
 <body>
 <h1 th:text="${repository.path}"></h1>
 <table>
-    <tr th:each="gallery : ${repository.galleries}">
+    <tr th:each="gallery : ${repository.getGalleriesSorted()}">
         <table style="margin: 10px;">
             <tr>
                 <td>

@@ -11,15 +11,18 @@
             <td><input type="submit" value="Add"></input></td>
         </tr>
     </table>
-    <ol>
-        <li th:each="repository : ${repositories}"><a th:href="'/repositories/view/' + ${repository.getId()}" th:text="${repository.path}"></a>
-        [ <a th:href="'/repositories/delete/' + ${repository.getId()}">X</a> ]
-        </li>
-    </ol>
-    <div th:if="${error}">
-        <div>An error occured!</div>
-        <div th:text="${error}"></div>
-    </div>
 </form>
+<p><a href="/tasks">Tasks</a></p>
+<ol>
+    <li th:each="repository : ${repositories}"><a th:href="'/repositories/view/' + ${repository.getId()}"
+                                                  th:text="${repository.path}"></a>
+        [ <a th:href="'/repositories/delete/' + ${repository.getId()}">X</a> ] [ <a
+                th:href="'/repositories/regenerate/' + ${repository.getId()}">&#8634;</a> ]
+    </li>
+</ol>
+<div th:if="${error}">
+    <div>An error occured!</div>
+    <div th:text="${error}"></div>
+</div>
 </body>
 </html>

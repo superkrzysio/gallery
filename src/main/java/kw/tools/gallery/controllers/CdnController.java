@@ -15,7 +15,9 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 
 /**
- * Workaround for browser security, when you can't render content from local filesystem on a webpage.</br>
+ * Workaround for browser security, when you can't render content from local filesystem on a webpage.<br/>
+ * Simply serving the images from cache folder. <br/>
+ * Security: none
  */
 @RestController
 public class CdnController

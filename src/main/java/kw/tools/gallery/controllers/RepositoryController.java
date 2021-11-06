@@ -5,6 +5,7 @@ import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.processing.AbstractThumbnailing;
 import kw.tools.gallery.processing.DirCrawler;
+import kw.tools.gallery.processing.Tasks;
 import kw.tools.gallery.processing.Thumbnailing;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -38,6 +39,9 @@ public class RepositoryController
 
     @Autowired
     private CacheUtils cacheUtils;
+
+    @Autowired
+    private Tasks tasks;
 
     private final static Logger LOG = LoggerFactory.getLogger(RepositoryController.class);
 
@@ -81,7 +85,7 @@ public class RepositoryController
         {
             tx = session.beginTransaction();
             Repository repo = session.load(Repository.class, id);
-            repo.getGalleries().forEach(
+            repo.getGalleries().stream().forEach(
                     gal -> gal.setThumbnails(
                             multiImageThumbnailing.retrieve(cacheUtils.getCacheDirForGallery(repo.getId(), gal.getId()))
                                     .stream()
@@ -105,36 +109,30 @@ public class RepositoryController
     @RequestMapping("/repositories/add")
     public RedirectView addRepository(@ModelAttribute Repository repository)
     {
+        repository.setPath(stripTrailingSlash(repository.getPath()));
+
         // todo: clean code
         Transaction tx = null;
         Session session = sessionFactory.openSession();
         try
         {
             tx = session.beginTransaction();
-            // just add if not exists
+            // skip if exists
             if (session.get(Repository.class, repository.getId()) != null)
             {
                 return new RedirectView("/repositories");
             }
+
             session.save(repository);
 
-            dirCrawler.forEach(repository.getPath(), path -> { // todo: this should be in background processing
-                if (AbstractThumbnailing.getImages(path.toString()).isEmpty())
-                {
-                    System.out.println("Found empty path: " + path);
-                    return;
-                }
-                Gallery gallery = new Gallery();
-                gallery.setName(path.getFileName().toString());
-                gallery.setPath(path.toString());
-                gallery.setPictureCount(AbstractThumbnailing.getImages(path.toString()).size());
-                gallery.setRepository(repository);
-                session.save(gallery);
-                System.out.println("Gallery " + gallery.getId() + " saved. Path: " + gallery.getPath());
+            // 1. create repository in db
+            // task:
+            // 2. find all valid galleries
+            // 3. create entries in db for them
+            // 4. generate thumbnails for each gallery
 
-//                singleImageThumbnailing.generate(path.toString(), repository.getId());
-                multiImageThumbnailing.generate(path.toString(), cacheUtils.generateGalleryDir(repository.getId(), gallery.getId()));
-            });
+            generate(repository, session);
+
             tx.commit();
             return new RedirectView("/repositories");
         } catch (HibernateException | IOException e)
@@ -152,6 +150,57 @@ public class RepositoryController
         }
     }
 
+    @RequestMapping("/repositories/regenerate/{repo}")
+    public RedirectView regenerateRepository(@PathVariable("repo") String id)
+    {
+        Transaction tx = null;
+        Session session = sessionFactory.openSession();
+        try
+        {
+            tx = session.beginTransaction();
+            Repository repo = session.get(Repository.class, id);
+            if (repo == null)
+            {
+                return new RedirectView("/repositories");
+            }
+            cacheUtils.delete(repo.getId());
+            generate(repo, session);
+            return new RedirectView("/repositories");
+        } catch (IOException e)
+        {
+            LOG.error("Failed to regenerate a repository", e);
+            return new RedirectView("/repositories?error=1");
+        } finally
+        {
+            if (tx != null && tx.getStatus().canRollback())
+            {
+                tx.rollback();
+            }
+            session.close();
+        }
+    }
+
+    private void generate(Repository repository, Session session) throws IOException
+    {
+        dirCrawler.forEach(repository.getPath(), path -> { // todo: this should be in background processing
+            if (AbstractThumbnailing.getImages(path.toString()).isEmpty())
+            {
+                System.out.println("Found empty path: " + path);
+                return;
+            }
+            Gallery gallery = new Gallery();
+            gallery.setName(path.getFileName().toString());
+            gallery.setPath(path.toString());
+            gallery.setPictureCount(AbstractThumbnailing.getImages(path.toString()).size());
+            gallery.setRepository(repository);
+            session.save(gallery);
+            System.out.println("Gallery " + gallery.getId() + " saved. Path: " + gallery.getPath());
+
+//                singleImageThumbnailing.generate(path.toString(), repository.getId());
+            tasks.execute(() -> multiImageThumbnailing.generate(path.toString(), cacheUtils.generateGalleryDir(repository.getId(), gallery.getId())));
+        });
+    }
+
     @RequestMapping("/repositories/delete/{id}")
     public RedirectView deleteRepository(@PathVariable("id") String id)
     {
@@ -161,8 +210,18 @@ public class RepositoryController
             tx = session.beginTransaction();
             Repository repo = session.load(Repository.class, id);
             session.delete(repo);
+            cacheUtils.delete(repo.getId());
             tx.commit();
         }
         return new RedirectView("/repositories");
+    }
+
+    private String stripTrailingSlash(String path)
+    {
+        if (path.endsWith("/"))
+        {
+            path = path.substring(0, path.length() - 1);
+        }
+        return path;
     }
 }

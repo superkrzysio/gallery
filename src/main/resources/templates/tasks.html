@@ -1,0 +1,26 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Index Page</title>
+    <style>
+        .WORKING {
+            color: red;
+            font-weight: bold;
+        }
+        .FINISHED
+        {
+            color: gray;
+        }
+
+    </style>
+</head>
+<body>
+<h1>Tasks: <span th:text="${tasksFinished}"></span> / <span th:text="${tasksTotal}"></span></h1>
+<p><a href="/repositories">Back to repositories</a></p>
+<table border="1">
+    <tr th:each="task : ${tasks}">
+        <td th:text="${task.id}"></td>
+        <td th:text="${task.status}" th:class="${task.status}"></td>
+    </tr>
+</table>
+</body>
+</html>
