@@ -57,6 +57,19 @@ public class CacheUtils
         }
     }
 
+    public void deletePhysically(String folder)
+    {
+        try
+        {
+            Files.walk(Path.of(folder))
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(this::delete);
+        } catch (IOException e)
+        {
+            LOG.error(String.format("Could not traverse repository %s", folder));
+        }
+    }
+
     public void delete(String repositoryId)
     {
         try

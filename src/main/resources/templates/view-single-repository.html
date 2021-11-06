@@ -19,6 +19,18 @@
             border-style: solid;
         }
     </style>
+    <script>
+        function callDelete(id)
+        {
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", "/gallery/delete/"+id)
+            xhr.send()
+            xhr.onload = function()
+            {
+                document.getElementById(id).innerHTML = xhr.status;
+            };
+        }
+    </script>
 </head>
 <body>
 <h1 th:text="${repository.path}"></h1>
@@ -29,7 +41,8 @@
                 <td>
                     <span class="galleryName" th:text="${gallery.name}"></span>
                     <span class="galleryPath" th:text="${gallery.path}"></span>
-                    <span class="galleryCount" th:text="'Pic count: ' + ${gallery.pictureCount}"></span>
+                    <span class="galleryCount" th:text="'Pic count: ' + ${gallery.pictureCount}"></span><br/>
+                    [ <a onclick="javascript:callDelete(this.getAttribute('data-id'))" th:data-id="${gallery.id}" href="javascript:void(0)">DELETE</a> <span th:id="${gallery.id}"></span>]
                 </td>
             </tr>
             <tr>
