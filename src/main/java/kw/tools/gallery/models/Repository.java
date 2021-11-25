@@ -66,4 +66,9 @@ public class Repository
     {
         this.galleries.add(gallery);
     }
+
+    public int getGalleryCount()
+    {
+        return galleries.size();
+    }
 }
