@@ -13,12 +13,11 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RepositoryService
@@ -146,6 +145,34 @@ public class RepositoryService
             tx.commit();
         }
         return repo;
+    }
+
+    public Repository getFullForId(String id)
+    {
+        Transaction tx = null;
+        try (Session session = sessionFactory.openSession())
+        {
+            tx = session.beginTransaction();
+            Repository repo = session.load(Repository.class, id);
+            repo.getGalleries().stream().forEach(
+                    gal -> gal.setThumbnails(
+                            multiImageThumbnailing.retrieve(cacheUtils.getCacheDirForGallery(repo.getId(), gal.getId()))
+                                    .stream()
+                                    .map(thumb -> String.format("/cdn/%s/%s/%s", repo.getId(), gal.getId(), thumb))
+                                    // todo: very obfuscated way to refer to other endpoint :(
+                                    .collect(Collectors.toList())
+                    )
+            );
+            tx.rollback();
+            return repo;
+        } catch (HibernateException e)
+        {
+            throw e;
+//            if (tx != null && tx.isActive())
+//            {
+//                tx.rollback();
+//            }
+        }
     }
 
     private String stripTrailingSlash(String path)

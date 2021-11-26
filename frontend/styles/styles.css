@@ -1,0 +1,12 @@
+.gallery-path
+{
+    font-size: small;
+    color: grey;
+}
+
+.thumb {
+    border-width: 2px;
+    border-color: white;
+    border-style: solid;
+    height: 100%;
+}

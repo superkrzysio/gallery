@@ -1,26 +1,38 @@
-package kw.tools.gallery.controllers;
+package kw.tools.gallery.services;
 
 import kw.tools.gallery.CacheUtils;
 import kw.tools.gallery.models.Gallery;
+import kw.tools.gallery.processing.DirCrawler;
+import kw.tools.gallery.processing.Tasks;
+import kw.tools.gallery.processing.Thumbnailing;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 
-@RestController
-public class GalleryController
+@Service
+public class GalleryService
 {
     @Autowired
     private SessionFactory sessionFactory;
 
     @Autowired
+    private DirCrawler dirCrawler;
+
+    @Autowired
+    private Tasks tasks;
+
+    @Autowired
+    private Thumbnailing singleImageThumbnailing;
+
+    @Autowired
+    private Thumbnailing multiImageThumbnailing;
+
+    @Autowired
     private CacheUtils cacheUtils;
 
-    @RequestMapping("/gallery/delete/{id}")
-    public String deletePhysically(@PathVariable("id") String id)
+    public void delete(String id)
     {
         Transaction tx = null;
         try (Session session = sessionFactory.openSession())
@@ -34,6 +46,5 @@ public class GalleryController
             session.save(gal.getRepository());
             tx.commit();
         }
-        return "OK";
     }
 }

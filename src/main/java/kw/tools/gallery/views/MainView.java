@@ -19,15 +19,13 @@ import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.services.RepositoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.function.Supplier;
-
 @Route("")
 public class MainView extends VerticalLayout
 {
     private final RepositoryService repositoryService;
 
-    private Grid<Repository> repositoryGrid = new Grid<>();
-    private TextField repositoryInput = new TextField();
+    private final Grid<Repository> repositoryGrid = new Grid<>();
+    private final TextField repositoryInput = new TextField();
 
 
     public MainView(@Autowired RepositoryService repositoryService)
@@ -59,7 +57,7 @@ public class MainView extends VerticalLayout
 
         repositoryGrid.addComponentColumn(repo -> {
             Anchor a = new Anchor();
-            a.setHref("/repositories/view/" + repo.getId());
+            a.setHref("/repository/" + repo.getId());
             a.setText(repo.getId());
             return a;
         }).setKey("name").setHeader("Name").setSortable(true).setAutoWidth(true)
@@ -110,7 +108,7 @@ public class MainView extends VerticalLayout
     {
         Page page = UI.getCurrent().getPage();
         page.executeJs(String.format("return confirm(\"Are you sure you want to delete '%s'?\")", id)).then(result -> {
-            if(result.asBoolean())
+            if (result.asBoolean())
             {
                 repositoryService.delete(id);
                 refreshGrid();
