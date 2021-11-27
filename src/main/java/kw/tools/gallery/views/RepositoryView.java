@@ -50,6 +50,7 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
             headersRow.add(new Span(gallery.getName()));
             Span pathSpan = new Span(gallery.getPath());
             pathSpan.addClassName("gallery-path");
+            pathSpan.addClickListener(e -> galleryService.openInFileBrowser(gallery.getPath()));
             headersRow.add(pathSpan);
             headersRow.add(new Span("Images: " + gallery.getPictureCount()));
             HorizontalLayout imgRow = new HorizontalLayout();
@@ -89,7 +90,8 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
 
     private void deleteGallery(String id, Button buttonHandle)
     {
-        UI.getCurrent().getPage().executeJs("return confirm(\"Are you sure you want to delete?\")").then(decision -> {
+        UI.getCurrent().getPage().executeJs("return confirm(\"Are you sure you want to DELETE THIS GALLERY FOLDER " +
+                "PERMANENTLY FROM THE DISK?\")").then(decision -> {
             if (decision.asBoolean())
             {
                 galleryService.delete(id);

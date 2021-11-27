@@ -5,33 +5,15 @@ import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.persistence.GalleryRepository;
 import kw.tools.gallery.persistence.RepositoryRepository;
-import kw.tools.gallery.processing.AbstractThumbnailing;
-import kw.tools.gallery.processing.DirCrawler;
-import kw.tools.gallery.processing.Tasks;
-import kw.tools.gallery.processing.Thumbnailing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class RepositoryService
 {
-    @Autowired
-    private DirCrawler dirCrawler;
-
-    @Autowired
-    private Tasks tasks;
-
-    @Autowired
-    private Thumbnailing singleImageThumbnailing;
-
-    @Autowired
-    private Thumbnailing multiImageThumbnailing;
-
     @Autowired
     private CacheUtils cacheUtils;
 
@@ -40,6 +22,9 @@ public class RepositoryService
 
     @Autowired
     private RepositoryRepository repositoryRepository;
+
+    @Autowired
+    private ProcessingService processingService;
 
     public List<Repository> getAll()
     {
@@ -60,14 +45,18 @@ public class RepositoryService
 
     public Repository regenerate(String id)
     {
-        Optional<Repository> repo = repositoryRepository.findById(id);
-        if (repo.isEmpty())
+        Optional<Repository> maybeRepo = repositoryRepository.findById(id);
+        if (maybeRepo.isEmpty())
         {
             return null;
         }
-        cacheUtils.delete(repo.get().getId());
-        generate(repo.get());
-        return repo.get();
+        Repository repo = maybeRepo.get();
+        cacheUtils.delete(repo.getId());
+        // todo: actually do not delete all galleries (and lose flags, tags, ratings, etc)
+        //  but only re-generate thumbnails for existing galleries and scan for any new
+        galleryRepository.deleteByRepositoryId(repo.getId());
+        generate(repo);
+        return repo;
     }
 
     public Repository delete(String id)
@@ -89,27 +78,16 @@ public class RepositoryService
 
     private void generate(Repository repository)
     {
-        try
+        for (ProcessingService.GalleryFolderDTO dto : processingService.fetchGalleries(repository.getPath()))
         {
-            dirCrawler.forEach(repository.getPath(), path -> { // todo: this should be in background processing
-                if (AbstractThumbnailing.getImages(path.toString()).isEmpty())
-                {
-                    System.out.println("Found empty path: " + path);
-                    return;
-                }
-                Gallery gallery = new Gallery();
-                gallery.setName(path.getFileName().toString());
-                gallery.setPath(path.toString());
-                gallery.setPictureCount(AbstractThumbnailing.getImages(path.toString()).size());
-                gallery.setRepositoryId(repository.getId());
-                galleryRepository.save(gallery);
-                //                singleImageThumbnailing.generate(path.toString(), repository.getId());
-                tasks.execute(() -> multiImageThumbnailing.generate(path.toString(), cacheUtils.generateGalleryDir(repository.getId(), gallery.getId())));
-            });
-        } catch (IOException e)
-        {
-            // todo
-            throw new UncheckedIOException(e);
+            Gallery gallery = new Gallery();
+            gallery.setName(dto.filename);
+            gallery.setPath(dto.fullPath);
+            gallery.setPictureCount(dto.pictureCount);
+            gallery.setRepositoryId(repository.getId());
+            galleryRepository.save(gallery);
+
+            processingService.generate(repository.getId(), gallery.getId(), gallery.getPath());
         }
     }
 

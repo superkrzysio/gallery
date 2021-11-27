@@ -9,9 +9,12 @@ import kw.tools.gallery.processing.Tasks;
 import kw.tools.gallery.processing.Thumbnailing;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,6 +45,9 @@ public class GalleryService
     @Autowired
     private RepositoryRepository repositoryRepository;
 
+    @Value("${system.file.viewer.command}")
+    private String fileViewerCommand;
+
     @Transactional
     public void delete(String id)
     {
@@ -60,6 +66,7 @@ public class GalleryService
                     .stream()
                     .map(thumb -> String.format("/cdn/%s/%s/%s", repoId, gal.getId(), thumb))
                     // todo: very obfuscated way to refer to other endpoint :(
+                    // and endpoint knowledge should be in the Vaadin view layer
                     .collect(Collectors.toList()));
         }
         return galleries;
@@ -73,5 +80,17 @@ public class GalleryService
     public void deleteAll(String repoId)
     {
         galleryRepository.deleteByRepositoryId(repoId);
+    }
+
+    public void openInFileBrowser(String path)
+    {
+        // critical security threat, but this application is not meant to be exposed to internet
+        try
+        {
+            Runtime.getRuntime().exec(String.format(fileViewerCommand, path));
+        } catch (IOException e)
+        {
+            throw new UncheckedIOException(e);
+        }
     }
 }
