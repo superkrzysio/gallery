@@ -16,6 +16,7 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import kw.tools.gallery.models.Repository;
+import kw.tools.gallery.services.GalleryService;
 import kw.tools.gallery.services.RepositoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -24,13 +25,17 @@ public class MainView extends VerticalLayout
 {
     private final RepositoryService repositoryService;
 
+    private final GalleryService galleryService;
+
     private final Grid<Repository> repositoryGrid = new Grid<>();
     private final TextField repositoryInput = new TextField();
 
 
-    public MainView(@Autowired RepositoryService repositoryService)
+    public MainView(@Autowired RepositoryService repositoryService,
+                    @Autowired GalleryService galleryService)
     {
         this.repositoryService = repositoryService;
+        this.galleryService = galleryService;
 
         setHeight(100, Unit.PERCENTAGE);
 
@@ -50,7 +55,9 @@ public class MainView extends VerticalLayout
 
         Button refreshButton = new Button("Refresh", VaadinIcon.REFRESH.create());
         refreshButton.addClickListener(e -> refreshGrid());
-        add(refreshButton);
+        HorizontalLayout controlButtonsWrapper = new HorizontalLayout(refreshButton, new Anchor("/tasks", "Tasks"));
+        controlButtonsWrapper.setAlignItems(Alignment.CENTER);
+        add(controlButtonsWrapper);
 
         repositoryGrid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         repositoryGrid.setHeight(100, Unit.PERCENTAGE);
@@ -63,7 +70,7 @@ public class MainView extends VerticalLayout
         }).setKey("name").setHeader("Name").setSortable(true).setAutoWidth(true)
                 .setFlexGrow(1).setResizable(true).setComparator(Repository::getId);
 
-        repositoryGrid.addColumn(new TextRenderer<>(repository -> Integer.toString(repository.getGalleryCount())))
+        repositoryGrid.addColumn(new TextRenderer<>(repository -> Integer.toString(galleryService.getGalleryCountForRepo(repository.getId()))))
                 .setKey("galCount").setHeader("Galleries").setSortable(true).setAutoWidth(true)
                 .setFlexGrow(0).setResizable(true);
 
@@ -111,6 +118,7 @@ public class MainView extends VerticalLayout
             if (result.asBoolean())
             {
                 repositoryService.delete(id);
+                galleryService.deleteAll(id);
                 refreshGrid();
             }
         });

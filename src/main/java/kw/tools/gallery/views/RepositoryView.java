@@ -21,6 +21,8 @@ import kw.tools.gallery.services.GalleryService;
 import kw.tools.gallery.services.RepositoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 @Route("repository")
 @CssImport("styles/styles.css")
 public class RepositoryView extends VerticalLayout implements HasUrlParameter<String>
@@ -79,9 +81,10 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
     public void setParameter(BeforeEvent beforeEvent, String param)
     {
         this.repoId = param;
-        Repository repository = repositoryService.getFullForId(repoId);
-        repositoryTitle.setText(repository.getId());
-        masterGrid.setItems(repository.getGalleries());
+        Repository repo = repositoryService.get(repoId);
+        List<Gallery> gals = galleryService.getFullForRepo(repoId);
+        repositoryTitle.setText(repo.getId());
+        masterGrid.setItems(gals);
     }
 
     private void deleteGallery(String id, Button buttonHandle)

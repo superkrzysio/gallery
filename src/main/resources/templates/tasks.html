@@ -15,7 +15,7 @@
 </head>
 <body>
 <h1>Tasks: <span th:text="${tasksFinished}"></span> / <span th:text="${tasksTotal}"></span></h1>
-<p><a href="/repositories">Back to repositories</a></p>
+<p><a href="/">Back to repositories</a></p>
 <table border="1">
     <tr th:each="task : ${tasks}">
         <td th:text="${task.id}"></td>

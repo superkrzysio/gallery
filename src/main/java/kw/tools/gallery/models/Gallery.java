@@ -2,23 +2,31 @@ package kw.tools.gallery.models;
 
 import net.bytebuddy.utility.RandomString;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Transient;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+@Entity
 public class Gallery
 {
     private static final int ID_LENGTH = 20;
+    @Id
+    private String id = RandomString.make(ID_LENGTH);;
+
     private int pictureCount;
     private String path;
     private String name;
     private int rating;
-    private Repository repository;
-    private List<String> thumbnails;        // not persisted
+    private String repositoryId;
 
-    private final String id;
+    @Transient
+    private List<String> thumbnails = new ArrayList<>();
 
     public Gallery()
     {
-        id = RandomString.make(ID_LENGTH);
     }
 
     public int getPictureCount()
@@ -66,23 +74,33 @@ public class Gallery
         return id;
     }
 
-    public Repository getRepository()
+    public String getRepositoryId()
     {
-        return repository;
+        return repositoryId;
     }
 
-    public void setRepository(Repository repository)
+    public void setRepositoryId(String repositoryId)
     {
-        this.repository = repository;
+        this.repositoryId = repositoryId;
     }
 
     public List<String> getThumbnails()
     {
-        return thumbnails;
+        return Collections.unmodifiableList(thumbnails);
     }
 
     public void setThumbnails(List<String> thumbnails)
     {
         this.thumbnails = thumbnails;
+    }
+
+    public void addThumbnail(String thumb)
+    {
+        thumbnails.add(thumb);
+    }
+
+    public void setId(String id)
+    {
+        this.id = id;
     }
 }

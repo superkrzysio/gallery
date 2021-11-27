@@ -1,15 +1,15 @@
 package kw.tools.gallery.models;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
+@Entity
 public class Repository
 {
-    private String path;
+    @Id
     private String id;
-    private Set<Gallery> galleries;
+
+    private String path;
 
     public Repository()
     {
@@ -47,28 +47,4 @@ public class Repository
         return path.replaceAll("[^\\w]", "-");
     }
 
-    public Set<Gallery> getGalleries()
-    {
-        return galleries;
-    }
-
-    public List<Gallery> getGalleriesSorted()
-    {
-        return galleries.stream().sorted(Comparator.comparing(Gallery::getId)).collect(Collectors.toList());
-    }
-
-    public void setGalleries(Set<Gallery> galleries)
-    {
-        this.galleries = galleries;
-    }
-
-    public void addGallery(Gallery gallery)
-    {
-        this.galleries.add(gallery);
-    }
-
-    public int getGalleryCount()
-    {
-        return galleries.size();
-    }
 }
