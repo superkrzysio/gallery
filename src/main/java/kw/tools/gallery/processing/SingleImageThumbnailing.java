@@ -45,7 +45,7 @@ public class SingleImageThumbnailing extends AbstractThumbnailing
     }
 
     @Override
-    public List<String> retrieve(String source)
+    public List<String> retrieve(String repoId, String galId)
     {
         return null;
     }

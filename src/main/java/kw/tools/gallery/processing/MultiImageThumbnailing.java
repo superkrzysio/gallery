@@ -1,5 +1,6 @@
 package kw.tools.gallery.processing;
 
+import kw.tools.gallery.CacheUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ public class MultiImageThumbnailing extends AbstractThumbnailing
     @Autowired
     private ImgUtils imgUtils;
 
+    @Autowired
+    private CacheUtils cacheUtils;
+
     @Override
     public void generate(String source, String target)
     {
@@ -51,8 +55,9 @@ public class MultiImageThumbnailing extends AbstractThumbnailing
     }
 
     @Override
-    public List<String> retrieve(String source)
+    public List<String> retrieve(String repoId, String galId)
     {
+        String source = cacheUtils.getCacheDirForGallery(repoId, galId);
         return decodeThumbFilename(source);
     }
 

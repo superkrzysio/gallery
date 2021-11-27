@@ -4,11 +4,9 @@ import kw.tools.gallery.CacheUtils;
 import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.persistence.GalleryRepository;
 import kw.tools.gallery.persistence.RepositoryRepository;
-import kw.tools.gallery.processing.DirCrawler;
-import kw.tools.gallery.processing.Tasks;
 import kw.tools.gallery.processing.Thumbnailing;
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,19 +20,7 @@ import java.util.stream.Collectors;
 public class GalleryService
 {
     @Autowired
-    private SessionFactory sessionFactory;
-
-    @Autowired
-    private DirCrawler dirCrawler;
-
-    @Autowired
-    private Tasks tasks;
-
-    @Autowired
-    private Thumbnailing singleImageThumbnailing;
-
-    @Autowired
-    private Thumbnailing multiImageThumbnailing;
+    private Thumbnailing thumbnailing;
 
     @Autowired
     private CacheUtils cacheUtils;
@@ -44,6 +30,9 @@ public class GalleryService
 
     @Autowired
     private RepositoryRepository repositoryRepository;
+
+    @Autowired
+    private CdnService cdnService;
 
     @Value("${system.file.viewer.command}")
     private String fileViewerCommand;
@@ -57,17 +46,22 @@ public class GalleryService
         galleryRepository.delete(gal);
     }
 
+    /**
+     * Get full Gallery object with thumbnails field calculated and filled with thumb URLs.
+     * @param repoId
+     * @return
+     */
     public List<Gallery> getFullForRepo(String repoId)
     {
         List<Gallery> galleries = galleryRepository.findByRepositoryId(repoId);
         for (Gallery gal : galleries)
         {
-            gal.setThumbnails(multiImageThumbnailing.retrieve(cacheUtils.getCacheDirForGallery(repoId, gal.getId()))
-                    .stream()
-                    .map(thumb -> String.format("/cdn/%s/%s/%s", repoId, gal.getId(), thumb))
-                    // todo: very obfuscated way to refer to other endpoint :(
-                    // and endpoint knowledge should be in the Vaadin view layer
-                    .collect(Collectors.toList()));
+            gal.setThumbnails(
+                    thumbnailing.retrieve(repoId, gal.getId())
+                            .stream()
+                            .map(thumb -> cdnService.getCdnUrl(repoId, gal.getId(), thumb))
+                            .collect(Collectors.toList())
+            );
         }
         return galleries;
     }

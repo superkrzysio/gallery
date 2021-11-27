@@ -9,7 +9,13 @@ public interface Thumbnailing
 {
     void generate(String source, String target);
 
-    List<String> retrieve(String source);
+    /**
+     * Retrieve list of paths to thumbnails for a gallery
+     * @param repoId
+     * @param galId
+     * @return
+     */
+    List<String> retrieve(String repoId, String galId);
 
     ProcessingStatus getStatus();
 }

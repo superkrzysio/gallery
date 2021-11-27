@@ -1,11 +1,9 @@
 package kw.tools.gallery.services;
 
 import kw.tools.gallery.CacheUtils;
-import kw.tools.gallery.processing.AbstractThumbnailing;
-import kw.tools.gallery.processing.DirCrawler;
-import kw.tools.gallery.processing.MultiImageThumbnailing;
-import kw.tools.gallery.processing.Tasks;
+import kw.tools.gallery.processing.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -22,7 +20,7 @@ public class ProcessingService
     private Tasks tasks;
 
     @Autowired
-    private MultiImageThumbnailing multiImageThumbnailing;
+    private Thumbnailing thumbnailing;
 
     @Autowired
     private CacheUtils cacheUtils;
@@ -33,13 +31,12 @@ public class ProcessingService
 
         try
         {
-            dirCrawler.forEach(inPath, galPath -> { // todo: this should be in background processing and clean code
+            dirCrawler.forEach(inPath, galPath -> {
                 if (AbstractThumbnailing.getImages(galPath.toString()).isEmpty())
                 {
                     // System.out.println("Found empty path: " + galPath);  // todo: logger
                     return;
                 }
-                //                singleImageThumbnailing.generate(path.toString(), repository.getId());
                 GalleryFolderDTO dto = new GalleryFolderDTO();
                 dto.filename = galPath.getFileName().toString();
                 dto.fullPath = galPath.toString();
@@ -55,7 +52,7 @@ public class ProcessingService
 
     public void generate(String repositoryId, String galleryId, String galleryPath)
     {
-        tasks.execute(() -> multiImageThumbnailing.generate(galleryPath, cacheUtils.generateGalleryDir(repositoryId, galleryId)));
+        tasks.execute(() -> thumbnailing.generate(galleryPath, cacheUtils.generateGalleryDir(repositoryId, galleryId)));
     }
 
     public static class GalleryFolderDTO
