@@ -1,7 +1,9 @@
 package kw.tools.gallery.processing;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,7 +13,8 @@ import java.util.List;
  * as a representative.
  */
 @Component
-public class SingleImageThumbnailing extends AbstractThumbnailing
+@Scope("prototype")
+public class SingleImageThumbnailingTask extends ThumbnailingTask
 {
     private final ProcessingStatus status = new ProcessingStatus();
 
@@ -36,23 +39,14 @@ public class SingleImageThumbnailing extends AbstractThumbnailing
     @Autowired
     private ThumbnailSelectionFactory thumbnailSelectionFactory;
 
+    @Autowired
+    private ImageAccessor imageAccessor;
+
     @Override
-    public void generate(String source, String targetId)
+    public void executeImpl()
     {
-        List<String> images = getImages(source);
+        List<String> images = imageAccessor.getImages(source);
         images = thumbnailSelectionFactory.get(selectionStrategy, verticalCount * horizontalCount).select(images);
-        // todo
-    }
-
-    @Override
-    public List<String> retrieve(String repoId, String galId)
-    {
-        return null;
-    }
-
-    @Override
-    public ProcessingStatus getStatus()
-    {
-        return null;
+        throw new NotImplementedException("Not implemented");
     }
 }

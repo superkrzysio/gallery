@@ -3,7 +3,6 @@ package kw.tools.gallery.services;
 import kw.tools.gallery.CacheUtils;
 import kw.tools.gallery.processing.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,13 +16,16 @@ public class ProcessingService
     private DirCrawler dirCrawler;
 
     @Autowired
-    private Tasks tasks;
-
-    @Autowired
-    private Thumbnailing thumbnailing;
+    private TaskService taskService;
 
     @Autowired
     private CacheUtils cacheUtils;
+
+    @Autowired
+    private ImageAccessor imageAccessor;
+
+    @Autowired
+    private ThumbnailingTaskFactory thumbnailingTaskFactory;
 
     public List<GalleryFolderDTO> fetchGalleries(String inPath)
     {
@@ -32,7 +34,7 @@ public class ProcessingService
         try
         {
             dirCrawler.forEach(inPath, galPath -> {
-                if (AbstractThumbnailing.getImages(galPath.toString()).isEmpty())
+                if (imageAccessor.getImages(galPath.toString()).isEmpty())
                 {
                     // System.out.println("Found empty path: " + galPath);  // todo: logger
                     return;
@@ -40,7 +42,7 @@ public class ProcessingService
                 GalleryFolderDTO dto = new GalleryFolderDTO();
                 dto.filename = galPath.getFileName().toString();
                 dto.fullPath = galPath.toString();
-                dto.pictureCount = AbstractThumbnailing.getImages(galPath.toString()).size();
+                dto.pictureCount = imageAccessor.getImages(galPath.toString()).size();
                 result.add(dto);
             });
         } catch (IOException e)
@@ -52,7 +54,11 @@ public class ProcessingService
 
     public void generate(String repositoryId, String galleryId, String galleryPath)
     {
-        tasks.execute(() -> thumbnailing.generate(galleryPath, cacheUtils.generateGalleryDir(repositoryId, galleryId)));
+        taskService.execute(thumbnailingTaskFactory.create(
+                repositoryId,
+                galleryPath,
+                cacheUtils.generateGalleryDir(repositoryId, galleryId)
+        ));
     }
 
     public static class GalleryFolderDTO

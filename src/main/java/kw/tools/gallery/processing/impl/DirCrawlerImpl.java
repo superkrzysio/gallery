@@ -1,5 +1,6 @@
-package kw.tools.gallery.processing;
+package kw.tools.gallery.processing.impl;
 
+import kw.tools.gallery.processing.DirCrawler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -20,9 +21,9 @@ import java.util.stream.Stream;
  * Class that crawls through directory structure and performs an action if the directory contains any regular file.
  */
 @Component
-public class DefaultDirCrawler implements DirCrawler
+public class DirCrawlerImpl implements DirCrawler
 {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultDirCrawler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DirCrawlerImpl.class);
 
     @Override
     public void forEach(String path, Consumer<Path> action) throws IOException

@@ -4,9 +4,8 @@ import kw.tools.gallery.CacheUtils;
 import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.persistence.GalleryRepository;
 import kw.tools.gallery.persistence.RepositoryRepository;
-import kw.tools.gallery.processing.Thumbnailing;
+import kw.tools.gallery.processing.ImageAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,9 +19,6 @@ import java.util.stream.Collectors;
 public class GalleryService
 {
     @Autowired
-    private Thumbnailing thumbnailing;
-
-    @Autowired
     private CacheUtils cacheUtils;
 
     @Autowired
@@ -33,6 +29,9 @@ public class GalleryService
 
     @Autowired
     private CdnService cdnService;
+
+    @Autowired
+    private ImageAccessor imageAccessor;
 
     @Value("${system.file.viewer.command}")
     private String fileViewerCommand;
@@ -57,7 +56,7 @@ public class GalleryService
         for (Gallery gal : galleries)
         {
             gal.setThumbnails(
-                    thumbnailing.retrieve(repoId, gal.getId())
+                    imageAccessor.getThumbs(repoId, gal.getId())
                             .stream()
                             .map(thumb -> cdnService.getCdnUrl(repoId, gal.getId(), thumb))
                             .collect(Collectors.toList())
