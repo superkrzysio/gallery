@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Task factory class, allows managing tasks handles.
@@ -40,18 +41,56 @@ public class TaskService
         return t;
     }
 
-    public Set<Task> getByCategory(String category)
+    public List<Task> getByCategory(String category)
     {
-        return tasks.get(category);
+        return category.isBlank() ? getAllTasksStream().collect(Collectors.toList()) : new ArrayList<>(getNonNullForCategory(category));
     }
 
-//    public Collection<Task> getAll()
-//    {
-//        return all.values();
-//    }
+    /**
+     * Return tasks by category name and list of statuses. If category is blank, filter all tasks by statuses.
+     *
+     * @param category
+     * @param statuses
+     * @return
+     */
+    public List<Task> getByCategoryStatus(String category, Task.Status... statuses)
+    {
+        Stream<Task> selected = category.isBlank() ? getAllTasksStream() : getByCategory(category).stream();
+        return selected
+                .filter(t -> Arrays.asList(statuses).contains(t.getStatus()))
+                .collect(Collectors.toUnmodifiableList());
+    }
 
-//    public Collection<Task> getFinished()
-//    {
-//        return all.values().stream().filter(t -> t.status.equals(Task.Status.FINISHED)).collect(Collectors.toList());
-//    }
+    public List<Task> getByStatus(Task.Status... statuses)
+    {
+        return getAllTasks()
+                .stream()
+                .filter(t -> Arrays.asList(statuses).contains(t.getStatus()))
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    public List<Task.Status> getStatuses(String category)
+    {
+        return getNonNullForCategory(category).stream().map(Task::getStatus).collect(Collectors.toList());
+    }
+
+    public void clearByCategory(String category)
+    {
+        tasks.remove(category);
+    }
+
+    private Set<Task> getNonNullForCategory(String category)
+    {
+        return tasks.get(category) != null ? tasks.get(category) : new HashSet<>();
+    }
+
+    public List<Task> getAllTasks()
+    {
+        return getAllTasksStream().collect(Collectors.toList());
+    }
+
+    private Stream<Task> getAllTasksStream()
+    {
+        return tasks.values().stream().flatMap(Collection::stream);
+    }
 }

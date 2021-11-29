@@ -66,6 +66,7 @@ public class MultiImageThumbnailingTask extends ThumbnailingTask
     public void setSource(String source)
     {
         this.source = source;
+        this.id = source;
     }
 
     public void setTarget(String target)
