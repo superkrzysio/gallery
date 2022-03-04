@@ -10,7 +10,7 @@ public abstract class Task implements Runnable
 
     @Id
     @GeneratedValue
-    protected String id;
+    protected Integer id;
 
     @Enumerated
     protected Status status;
@@ -18,12 +18,12 @@ public abstract class Task implements Runnable
     @Access(AccessType.FIELD)
     protected StringBuilder logs = new StringBuilder();
 
-    public String getId()
+    public Integer getId()
     {
         return id;
     }
 
-    public void setId(String id)
+    public void setId(Integer id)
     {
         this.id = id;
     }

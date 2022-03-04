@@ -4,6 +4,7 @@ import kw.tools.gallery.models.Task;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 @Entity
@@ -11,6 +12,11 @@ public class ObservableTask extends Task
 {
     @Transient
     private final Consumer<Task> observer;
+
+    public ObservableTask()
+    {
+        observer = null;
+    }
 
     public ObservableTask(Consumer<Task> observer)
     {
@@ -20,6 +26,7 @@ public class ObservableTask extends Task
     @Override
     public synchronized void run()
     {
+        Objects.requireNonNull(observer);
         try
         {
             Thread.sleep(100);

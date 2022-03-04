@@ -1,17 +1,17 @@
 package kw.tools.gallery.taskengine;
 
 import kw.tools.gallery.models.Task;
+import kw.tools.gallery.persistence.TaskRepository;
 import kw.tools.gallery.taskengine.core.TaskEngineControl;
 import kw.tools.gallery.taskengine.utils.*;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 public class TaskProcessingTest
 {
+    @Autowired
+    private TaskRepository<?> taskRepository;
     @Autowired
     private NotifyingTaskRepository notifyingTaskRepository;
 
@@ -46,15 +48,12 @@ public class TaskProcessingTest
     @Autowired
     private TaskEngineControl taskEngine;
 
-    @Autowired
-    private EntityManager em;
-
-    private CustomFluentAssertions customAssertions;
+    private CustomFluentAssertions customAssertions = new CustomFluentAssertions();
 
     private static final int TEST_TIMEOUT = 10000;
 
-    @BeforeEach
-    public void cleanupTaskEngine() throws ExecutionException, InterruptedException
+    @AfterEach
+    public void shutdownTaskEngine() throws ExecutionException, InterruptedException
     {
         taskEngine.stop().get();
         notifyingTaskRepository.deleteAll();
@@ -62,7 +61,6 @@ public class TaskProcessingTest
         chainingTaskRepository.deleteAll();
         emptyTaskRepository.deleteAll();
     }
-
 
     @Test
     public void shouldPickUpTaskAfterStarting() throws InterruptedException
@@ -79,7 +77,7 @@ public class TaskProcessingTest
     @Test
     public void shouldPickUpTaskWhilePolling() throws ExecutionException, InterruptedException
     {
-        taskEngine.start().get();
+        taskEngine.start();
         Task t = new NotifyingTask();
         notifyingTaskRepository.save(t);
         t.notify();
@@ -221,8 +219,8 @@ public class TaskProcessingTest
                     .atMost(TEST_TIMEOUT, TimeUnit.MILLISECONDS)
                     .pollInSameThread()
                     .until(() -> {
-                        em.refresh(t);
-                        return t.getStatus() != Task.Status.RUNNABLE;
+                        Task refreshed = taskRepository.findById(t.getId()).get();
+                        return refreshed.getStatus() != Task.Status.RUNNABLE;
                     });
         }
     }

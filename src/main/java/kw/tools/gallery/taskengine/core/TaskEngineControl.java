@@ -1,19 +1,32 @@
 package kw.tools.gallery.taskengine.core;
 
-import java.util.concurrent.CompletableFuture;
+import org.apache.commons.lang3.NotImplementedException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.concurrent.*;
 
 /**
  * Control panel for task engine.
  */
+@Component
 public class TaskEngineControl
 {
+    @Autowired
+    private TaskEnginePolling taskEnginePolling;
+
+    private Thread taskEngineMainThread;
+
+    public static final int SHUTDOWN_TIMEOUT = 60;
 
     /**
      * Start the Task Engine thread according to current settings.
      */
-    public synchronized CompletableFuture<Void> start()
+    public synchronized void start()
     {
-        return null;
+        requireTaskEngineRunning(false);
+        taskEngineMainThread = Executors.defaultThreadFactory().newThread(taskEnginePolling);
+        taskEngineMainThread.start();
     }
 
     /**
@@ -21,16 +34,22 @@ public class TaskEngineControl
      */
     public synchronized CompletableFuture<Void> restart()
     {
-        return null;
+        requireTaskEngineRunning(true);
+        return stop().thenRun(this::start);
     }
 
     /**
      * Graceful stop.
-     * Will wait for current running tasks to finish. Can try to interrupt them if possible.
+     * Will wait for current running tasks to finish. Tries to interrupt them.
      */
     public synchronized CompletableFuture<Void> stop()
     {
-        return null;
+        requireTaskEngineRunning(true);
+        return new CompletableFuture<Void>().completeAsync(() -> {
+            taskEngineMainThread.interrupt();
+            taskEnginePolling.awaitShutdown(SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
+            return null;
+        });
     }
 
     /**
@@ -38,7 +57,16 @@ public class TaskEngineControl
      */
     public synchronized void kill()
     {
+        requireTaskEngineRunning(true);
+        throw new NotImplementedException();
+    }
 
+    private void requireTaskEngineRunning(boolean state)
+    {
+        if (isRunning() != state)
+        {
+            throw new IllegalStateException("Task engine " + (state ? "not" : "already") + " running");
+        }
     }
 
     /**
@@ -48,6 +76,7 @@ public class TaskEngineControl
      */
     public boolean isRunning()
     {
-        return false;
+        return taskEngineMainThread != null && taskEngineMainThread.isAlive();
     }
+
 }

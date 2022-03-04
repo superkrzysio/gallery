@@ -7,9 +7,5 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class Beans
 {
-    @Bean
-    public TaskEngineControl taskEngineControl()
-    {
-        return new TaskEngineControl();
-    }
+
 }

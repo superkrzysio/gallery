@@ -19,37 +19,40 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TaskEngineControlTest
 {
     @Autowired
-    private TaskEngineControl taskEngine;
+    private TaskEngineControl taskEngineControl;
 
     @Autowired
-    TaskRepository taskRepository;
+    TaskRepository<?> taskRepository;
 
     @BeforeEach
     public void cleanTaskEngine()
     {
-        taskEngine.kill();
+        try
+        {
+            taskEngineControl.kill();
+        } catch (Exception e) { }
         taskRepository.deleteAll();
     }
 
     @Test
     public void testStartingAndStopping() throws ExecutionException, InterruptedException
     {
-        assertFalse(taskEngine.isRunning());
-        taskEngine.start().get();
-        assertTrue(taskEngine.isRunning());
-        taskEngine.stop().get();
-        assertFalse(taskEngine.isRunning());
+        assertFalse(taskEngineControl.isRunning());
+        taskEngineControl.start();
+        assertTrue(taskEngineControl.isRunning());
+        taskEngineControl.stop().get();
+        assertFalse(taskEngineControl.isRunning());
     }
 
     @Test
     public void testRestart() throws ExecutionException, InterruptedException
     {
-        assertFalse(taskEngine.isRunning());
-        taskEngine.start().get();
-        assertTrue(taskEngine.isRunning());
-        taskEngine.restart().get();
-        assertTrue(taskEngine.isRunning());
-        taskEngine.stop().get();
+        assertFalse(taskEngineControl.isRunning());
+        taskEngineControl.start();
+        assertTrue(taskEngineControl.isRunning());
+        taskEngineControl.restart().get();
+        assertTrue(taskEngineControl.isRunning());
+        taskEngineControl.stop().get();
     }
 
 
