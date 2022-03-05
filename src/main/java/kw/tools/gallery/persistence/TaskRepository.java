@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Repository
 public interface TaskRepository<T extends Task> extends JpaRepository<Task, Integer>
 {
     void deleteAll();

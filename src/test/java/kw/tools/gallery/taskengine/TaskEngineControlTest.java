@@ -30,7 +30,9 @@ public class TaskEngineControlTest
         try
         {
             taskEngineControl.kill();
-        } catch (Exception e) { }
+        } catch (Exception e)
+        {
+        }
         taskRepository.deleteAll();
     }
 

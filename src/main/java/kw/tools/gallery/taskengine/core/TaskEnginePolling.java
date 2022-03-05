@@ -2,6 +2,8 @@ package kw.tools.gallery.taskengine.core;
 
 import kw.tools.gallery.models.Task;
 import kw.tools.gallery.persistence.TaskRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class TaskEnginePolling implements Runnable
 {
+    private static final Logger LOG = LoggerFactory.getLogger(TaskEnginePolling.class);
+
     @Autowired
     private TaskRepository<?> taskRepository;
 
@@ -37,23 +41,28 @@ public class TaskEnginePolling implements Runnable
     public void run()
     {
         threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(THREAD_COUNT);
-
-        while(!Thread.interrupted())
+        while (!Thread.interrupted())
         {
-            if (threadPoolExecutor.getQueue().remainingCapacity() < QUEUE_SIZE)
+            if (threadPoolExecutor.getQueue().size() < QUEUE_SIZE)
             {
                 Task task = fetchTask();
                 if (task != null)
                 {
+                    if (LOG.isDebugEnabled())
+                        LOG.debug("Enqueuing task: " + task);
+                    markQueued(task);
+                    task.setApplicationContext(applicationContext);
                     threadPoolExecutor.execute(new TaskProcessor(task, applicationContext));
-                }
-                else
+                } else
                 {
+                    if (LOG.isDebugEnabled())
+                        LOG.debug("No more runnable tasks found");
                     sleep();
                 }
-            }
-            else
+            } else
             {
+                if (LOG.isDebugEnabled())
+                    LOG.debug("Task queue full");
                 sleep();
             }
         }
@@ -72,6 +81,16 @@ public class TaskEnginePolling implements Runnable
         }
     }
 
+    public boolean hasFutureTask()
+    {
+        return fetchTask() != null;
+    }
+
+    public int getQueueSize()
+    {
+        return threadPoolExecutor.getQueue().size();
+    }
+
     private void sleep()
     {
         try
@@ -86,9 +105,17 @@ public class TaskEnginePolling implements Runnable
     // FIFO strategy - TODO: this logic does not fit this class
     private Task fetchTask()
     {
-        synchronized (taskRepository)
-        {
-            return taskRepository.findFirstByStatusOrderByIdAsc(Task.Status.RUNNABLE).orElse(null);
-        }
+        return taskRepository.findFirstByStatusOrderByIdAsc(Task.Status.RUNNABLE).orElse(null);
+    }
+
+    private void markQueued(Task t)
+    {
+        t.setStatus(Task.Status.QUEUED);
+        taskRepository.save(t);
+    }
+
+    public long getCompletedTaskCount()
+    {
+        return threadPoolExecutor.getCompletedTaskCount();
     }
 }

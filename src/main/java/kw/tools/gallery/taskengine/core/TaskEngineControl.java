@@ -4,7 +4,9 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Control panel for task engine.
@@ -61,6 +63,11 @@ public class TaskEngineControl
         throw new NotImplementedException();
     }
 
+    public int getQueueSize()
+    {
+        return taskEnginePolling.getQueueSize();
+    }
+
     private void requireTaskEngineRunning(boolean state)
     {
         if (isRunning() != state)
@@ -79,4 +86,13 @@ public class TaskEngineControl
         return taskEngineMainThread != null && taskEngineMainThread.isAlive();
     }
 
+    public boolean hasFutureTask()
+    {
+        return taskEnginePolling.hasFutureTask();
+    }
+
+    public long getCompletedTaskCount()
+    {
+        return taskEnginePolling.getCompletedTaskCount();
+    }
 }
