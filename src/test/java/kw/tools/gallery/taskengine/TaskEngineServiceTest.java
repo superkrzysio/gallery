@@ -1,7 +1,7 @@
 package kw.tools.gallery.taskengine;
 
-import kw.tools.gallery.persistence.TaskRepository;
-import kw.tools.gallery.taskengine.core.TaskEngineControl;
+import kw.tools.gallery.taskengine.core.TaskRepository;
+import kw.tools.gallery.taskengine.core.TaskEngineService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,10 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class TaskEngineControlTest
+public class TaskEngineServiceTest
 {
     @Autowired
-    private TaskEngineControl taskEngineControl;
+    private TaskEngineService taskEngineService;
 
     @Autowired
     TaskRepository<?> taskRepository;
@@ -29,7 +29,7 @@ public class TaskEngineControlTest
     {
         try
         {
-            taskEngineControl.kill();
+            taskEngineService.kill();
         } catch (Exception e)
         {
         }
@@ -39,22 +39,22 @@ public class TaskEngineControlTest
     @Test
     public void testStartingAndStopping() throws ExecutionException, InterruptedException
     {
-        assertFalse(taskEngineControl.isRunning());
-        taskEngineControl.start();
-        assertTrue(taskEngineControl.isRunning());
-        taskEngineControl.stop().get();
-        assertFalse(taskEngineControl.isRunning());
+        assertFalse(taskEngineService.isRunning());
+        taskEngineService.start();
+        assertTrue(taskEngineService.isRunning());
+        taskEngineService.stop().get();
+        assertFalse(taskEngineService.isRunning());
     }
 
     @Test
     public void testRestart() throws ExecutionException, InterruptedException
     {
-        assertFalse(taskEngineControl.isRunning());
-        taskEngineControl.start();
-        assertTrue(taskEngineControl.isRunning());
-        taskEngineControl.restart().get();
-        assertTrue(taskEngineControl.isRunning());
-        taskEngineControl.stop().get();
+        assertFalse(taskEngineService.isRunning());
+        taskEngineService.start();
+        assertTrue(taskEngineService.isRunning());
+        taskEngineService.restart().get();
+        assertTrue(taskEngineService.isRunning());
+        taskEngineService.stop().get();
     }
 
 

@@ -1,6 +1,6 @@
 package kw.tools.gallery.taskengine.utils;
 
-import kw.tools.gallery.models.Task;
+import kw.tools.gallery.taskengine.core.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

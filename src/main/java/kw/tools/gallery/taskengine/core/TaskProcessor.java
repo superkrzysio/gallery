@@ -1,7 +1,5 @@
 package kw.tools.gallery.taskengine.core;
 
-import kw.tools.gallery.models.Task;
-import kw.tools.gallery.persistence.TaskRepository;
 import org.springframework.context.ApplicationContext;
 
 /**

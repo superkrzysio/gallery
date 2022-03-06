@@ -1,8 +1,8 @@
 package kw.tools.gallery.taskengine;
 
-import kw.tools.gallery.models.Task;
-import kw.tools.gallery.persistence.TaskRepository;
-import kw.tools.gallery.taskengine.core.TaskEngineControl;
+import kw.tools.gallery.taskengine.core.Task;
+import kw.tools.gallery.taskengine.core.TaskRepository;
+import kw.tools.gallery.taskengine.core.TaskEngineService;
 import kw.tools.gallery.taskengine.utils.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ public class TaskProcessingTest
     private ErroneousTaskRepository erroneousTaskRepository;
 
     @Autowired
-    private TaskEngineControl taskEngine;
+    private TaskEngineService taskEngine;
 
     private final CustomFluentAssertions customAssertions = new CustomFluentAssertions();
 
@@ -55,7 +55,7 @@ public class TaskProcessingTest
         Task t = new EmptyTask();
         emptyTaskRepository.save(t);
         taskEngine.start();
-        await().until(() -> taskEngine.getQueueSize() == 0);
+        await().until(() -> taskEngine.getQueueSize() == 0 && !taskEngine.hasFutureTask());
         t = refresh(t);
         customAssertions.assertThat(t).isFinished();
     }
@@ -66,7 +66,7 @@ public class TaskProcessingTest
         taskEngine.start();
         Task t = new EmptyTask();
         emptyTaskRepository.save(t);
-        await().until(() -> taskEngine.getQueueSize() == 0);
+        await().until(() -> taskEngine.getQueueSize() == 0 && !taskEngine.hasFutureTask());
         t = refresh(t);
         customAssertions.assertThat(t).isFinished();
     }

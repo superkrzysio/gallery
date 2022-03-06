@@ -2,17 +2,25 @@ package kw.tools.gallery.taskengine.core;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Control panel for task engine.
+ * Control panel for task engine, the frontend for the whole engine. It is a standalone feature that simply works
+ * in background and performs logic defined as tasks.
+ * Tasks can persist their own data (they must extend kw.tools.gallery.taskengine.core.Task) and can perform
+ * their own behaviour by implementing Runnable.
+ * Big TODO: task recovery: clean task statuses in DB, when task engine was shut down or shut down abruptly, causing
+ *           tasks to remain in RUNNING or QUEUED state but are not in queue.
+ * Even bigger TODO: Possibly introduce transactions for tasks with some rollback logic
+ * Other TODO: Implement task interruption to make use of ABORTED status and shutdownNow()
+ * Moar TODO: Introduce @Idempotent annotation for tasks, marking them rerunnable.
  */
-@Component
-public class TaskEngineControl
+@Service
+public class TaskEngineService
 {
     @Autowired
     private TaskEnginePolling taskEnginePolling;
@@ -23,6 +31,7 @@ public class TaskEngineControl
 
     /**
      * Start the Task Engine thread according to current settings.
+     * TODO: settings, e.g. thread count, poll interval, task fetch strategy
      */
     public synchronized void start()
     {
@@ -78,8 +87,6 @@ public class TaskEngineControl
 
     /**
      * Liveness check
-     *
-     * @return
      */
     public boolean isRunning()
     {

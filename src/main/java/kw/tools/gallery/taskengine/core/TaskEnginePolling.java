@@ -1,7 +1,5 @@
 package kw.tools.gallery.taskengine.core;
 
-import kw.tools.gallery.models.Task;
-import kw.tools.gallery.persistence.TaskRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +38,7 @@ public class TaskEnginePolling implements Runnable
     @Override
     public void run()
     {
+        LOG.info("Task engine started");
         threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(THREAD_COUNT);
         while (!Thread.interrupted())
         {
@@ -66,6 +65,7 @@ public class TaskEnginePolling implements Runnable
                 sleep();
             }
         }
+        LOG.info("Task engine shutting down...");
         threadPoolExecutor.shutdownNow();
     }
 

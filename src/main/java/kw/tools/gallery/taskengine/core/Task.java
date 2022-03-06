@@ -1,4 +1,4 @@
-package kw.tools.gallery.models;
+package kw.tools.gallery.taskengine.core;
 
 import org.springframework.context.ApplicationContext;
 
