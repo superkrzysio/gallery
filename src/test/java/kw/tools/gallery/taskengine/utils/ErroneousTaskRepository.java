@@ -1,6 +1,6 @@
 package kw.tools.gallery.taskengine.utils;
 
-import kw.tools.gallery.taskengine.core.TaskRepository;
+import kw.tools.gallery.taskengine.TaskRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository

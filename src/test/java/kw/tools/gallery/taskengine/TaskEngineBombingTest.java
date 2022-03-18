@@ -1,8 +1,5 @@
 package kw.tools.gallery.taskengine;
 
-import kw.tools.gallery.taskengine.core.Task;
-import kw.tools.gallery.taskengine.core.TaskEngineService;
-import kw.tools.gallery.taskengine.core.TaskRepository;
 import kw.tools.gallery.taskengine.utils.EmptyTask;
 import kw.tools.gallery.taskengine.utils.EmptyTaskRepository;
 import org.assertj.core.api.Assertions;
@@ -51,7 +48,7 @@ public class TaskEngineBombingTest
     public void shouldProcessHighNumberOfTasks()
     {
         Task[] tasks = new Task[HIGH_NUMBER_O_TASKS];
-        for (int x=0; x<HIGH_NUMBER_O_TASKS; x++)
+        for (int x = 0; x < HIGH_NUMBER_O_TASKS; x++)
         {
             tasks[x] = new EmptyTask();
         }
@@ -60,7 +57,7 @@ public class TaskEngineBombingTest
                 .atMost(Duration.of(5, ChronoUnit.MINUTES))
                 .until(() -> taskEngine.getQueueSize() == 0 && !taskEngine.hasFutureTask());
 
-        for(int x=0; x<HIGH_NUMBER_O_TASKS; x++)
+        for (int x = 0; x < HIGH_NUMBER_O_TASKS; x++)
         {
             Task t = refresh(tasks[x]);
             Assertions.assertThat(t.getStatus()).isEqualTo(Task.Status.FINISHED);

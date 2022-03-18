@@ -1,8 +1,5 @@
 package kw.tools.gallery.taskengine;
 
-import kw.tools.gallery.taskengine.core.Task;
-import kw.tools.gallery.taskengine.core.TaskRepository;
-import kw.tools.gallery.taskengine.core.TaskEngineService;
 import kw.tools.gallery.taskengine.utils.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

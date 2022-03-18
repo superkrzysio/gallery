@@ -47,6 +47,7 @@ public class GalleryService
 
     /**
      * Get full Gallery object with thumbnails field calculated and filled with thumb URLs.
+     *
      * @param repoId
      * @return
      */

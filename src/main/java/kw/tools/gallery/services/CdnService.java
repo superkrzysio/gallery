@@ -9,9 +9,8 @@ import org.springframework.stereotype.Service;
 public class CdnService
 {
     /**
-     *
-     * @param repo Repository id
-     * @param gal Gallery id
+     * @param repo  Repository id
+     * @param gal   Gallery id
      * @param thumb Thumbnail id
      * @return URL that can be inserted into &lt;img src=""/&gt;
      */

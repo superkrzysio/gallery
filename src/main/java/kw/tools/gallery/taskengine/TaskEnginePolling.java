@@ -1,4 +1,4 @@
-package kw.tools.gallery.taskengine.core;
+package kw.tools.gallery.taskengine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,7 +99,7 @@ public class TaskEnginePolling implements Runnable
     {
         try
         {
-            if(LOG.isTraceEnabled())
+            if (LOG.isTraceEnabled())
             {
                 LOG.trace(String.format("sleep: thread: %s, interrupted: %s", Thread.currentThread().getName(), Thread.currentThread().isInterrupted()));
             }

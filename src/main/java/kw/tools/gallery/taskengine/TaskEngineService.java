@@ -1,4 +1,4 @@
-package kw.tools.gallery.taskengine.core;
+package kw.tools.gallery.taskengine;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * Tasks can persist their own data (they must extend kw.tools.gallery.taskengine.core.Task) and can perform
  * their own behaviour by implementing Runnable.
  * Big TODO: task recovery: clean task statuses in DB, when task engine was shut down or shut down abruptly, causing
- *           tasks to remain in RUNNING or QUEUED state but are not in queue.
+ * tasks to remain in RUNNING or QUEUED state but are not in queue.
  * Even bigger TODO: Possibly introduce transactions for tasks with some rollback logic
  * Other TODO: Implement task interruption to make use of ABORTED status and shutdownNow()
  * Moar TODO: Introduce @Idempotent annotation for tasks, marking them rerunnable.

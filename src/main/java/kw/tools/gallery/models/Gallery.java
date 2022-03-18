@@ -14,7 +14,7 @@ public class Gallery
 {
     private static final int ID_LENGTH = 20;
     @Id
-    private String id = RandomString.make(ID_LENGTH);;
+    private String id = RandomString.make(ID_LENGTH);
 
     private int pictureCount;
     private String path;

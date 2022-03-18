@@ -33,7 +33,7 @@ public class ThumbnailSelectionFactoryTest
 
             if (count > 1)
                 // last
-                Assertions.assertEquals(testImages.get(testImages.size()-1), result.get(expectedSize-1));
+                Assertions.assertEquals(testImages.get(testImages.size() - 1), result.get(expectedSize - 1));
         }
     }
 
@@ -54,7 +54,7 @@ public class ThumbnailSelectionFactoryTest
 
             if (count > 1)
                 // last element
-                Assertions.assertEquals(testImages.get(expectedSize - 1), result.get(expectedSize-1));
+                Assertions.assertEquals(testImages.get(expectedSize - 1), result.get(expectedSize - 1));
         }
     }
 
@@ -71,7 +71,7 @@ public class ThumbnailSelectionFactoryTest
         if (sourceSize >= 1 && count >= 1)
         {
             // last element
-            Assertions.assertEquals(testImages.get(testImages.size()-1), result.get(expectedSize-1));
+            Assertions.assertEquals(testImages.get(testImages.size() - 1), result.get(expectedSize - 1));
 
             if (count > 1)
                 // first element

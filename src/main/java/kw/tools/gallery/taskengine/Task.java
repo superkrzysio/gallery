@@ -1,4 +1,4 @@
-package kw.tools.gallery.taskengine.core;
+package kw.tools.gallery.taskengine;
 
 import org.springframework.context.ApplicationContext;
 
