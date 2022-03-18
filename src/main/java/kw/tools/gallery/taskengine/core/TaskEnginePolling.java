@@ -39,8 +39,12 @@ public class TaskEnginePolling implements Runnable
     public void run()
     {
         LOG.info("Task engine started");
+
+        // this is a narrow window when interrupting task engine will not work, Executors will clear interrupted status
+        // anyway, interrupting taskengine immediately after start is remotely probably outside tests
         threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(THREAD_COUNT);
-        while (!Thread.interrupted())
+
+        while (!Thread.currentThread().isInterrupted())
         {
             if (threadPoolExecutor.getQueue().size() < QUEUE_SIZE)
             {
@@ -95,6 +99,10 @@ public class TaskEnginePolling implements Runnable
     {
         try
         {
+            if(LOG.isTraceEnabled())
+            {
+                LOG.trace(String.format("sleep: thread: %s, interrupted: %s", Thread.currentThread().getName(), Thread.currentThread().isInterrupted()));
+            }
             Thread.sleep(POLL_INTERVAL.toMillis());
         } catch (InterruptedException e)
         {

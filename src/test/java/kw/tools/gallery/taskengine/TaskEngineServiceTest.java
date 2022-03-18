@@ -37,11 +37,12 @@ public class TaskEngineServiceTest
     }
 
     @Test
-    public void testStartingAndStopping() throws ExecutionException, InterruptedException
+    public void testStartingAndLaterStopping() throws ExecutionException, InterruptedException
     {
         assertFalse(taskEngineService.isRunning());
         taskEngineService.start();
         assertTrue(taskEngineService.isRunning());
+        Thread.sleep(3000);
         taskEngineService.stop().get();
         assertFalse(taskEngineService.isRunning());
     }
@@ -52,6 +53,7 @@ public class TaskEngineServiceTest
         assertFalse(taskEngineService.isRunning());
         taskEngineService.start();
         assertTrue(taskEngineService.isRunning());
+        Thread.sleep(3000);
         taskEngineService.restart().get();
         assertTrue(taskEngineService.isRunning());
         taskEngineService.stop().get();

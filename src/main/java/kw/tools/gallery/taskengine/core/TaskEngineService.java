@@ -1,6 +1,8 @@
 package kw.tools.gallery.taskengine.core;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class TaskEngineService
 {
+    private static final Logger LOG = LoggerFactory.getLogger(TaskEngineService.class);
+
     @Autowired
     private TaskEnginePolling taskEnginePolling;
 
@@ -57,8 +61,11 @@ public class TaskEngineService
     {
         requireTaskEngineRunning(true);
         return new CompletableFuture<Void>().completeAsync(() -> {
+            LOG.debug("Interrupting taskEngineMainThread");
             taskEngineMainThread.interrupt();
+            LOG.debug("Awaiting taskEngineMainThread shutdown");
             taskEnginePolling.awaitShutdown(SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
+            LOG.debug("taskEngineMainThread said to be shut down");
             return null;
         });
     }
