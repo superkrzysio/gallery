@@ -16,18 +16,25 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
-import kw.tools.gallery.processing.Task;
+import kw.tools.gallery.models.GalleryTask;
 import kw.tools.gallery.services.TaskService;
+import kw.tools.gallery.taskengine.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @Route("/tasks")
 public class TasksView extends VerticalLayout implements HasUrlParameter<String>
 {
+    private static final Logger LOG = LoggerFactory.getLogger(TasksView.class);
+
     private String repositoryId = "";
-    private final Grid<Task> currentTasksGrid;
+    private final Grid<GalleryTask> currentTasksGrid;
     private final Checkbox filterCreated;
     private final Checkbox filterRunning;
     private final Checkbox filterError;
@@ -75,10 +82,10 @@ public class TasksView extends VerticalLayout implements HasUrlParameter<String>
         // all the fuss just to display newlines
         currentTasksGrid.addColumn(new ComponentRenderer<>(task -> {
             HorizontalLayout messageRows = new HorizontalLayout();
-            for (int i = 0; i < task.getMessages().size(); i++)
+            for (int i = 0; i < task.getLogs().split("\n").length; i++)
             {
                 if (i > 0) messageRows.add(new HtmlComponent("br"));
-                messageRows.add(task.getMessages().get(i));
+                messageRows.add(task.getLogs().split("\n")[i]);
             }
             return messageRows;
         })).setHeader("Error messages");
@@ -86,12 +93,9 @@ public class TasksView extends VerticalLayout implements HasUrlParameter<String>
         currentTasksGrid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         currentTasksGrid.setMultiSort(true);
 
-        progressBar.setMin(0);
-        progressBar.setMax(taskService.getByCategory(repositoryId).size());
+
         progressBar.setWidth(75, Unit.PERCENTAGE);
         add(progressBar);
-
-        refreshGridControls();
 
         HorizontalLayout gridControls = new HorizontalLayout(refreshThreadsButton, filterCreated, filterRunning,
                 filterFinished, filterError, filterHasMessages);
@@ -105,30 +109,51 @@ public class TasksView extends VerticalLayout implements HasUrlParameter<String>
     public void setParameter(BeforeEvent beforeEvent, String param)
     {
         this.repositoryId = param;
+        progressBar.setMin(0);
+        progressBar.setMax(taskService.getByCategory(repositoryId).size());
         refreshGridControls();
     }
 
     private void refreshGridControls()
     {
         currentTasksGrid.setItems(filterTasks());
-        filterCreated.setLabel(String.format("Created (%d)", taskService.getByCategoryStatus(repositoryId, Task.Status.CREATED).size()));
-        filterRunning.setLabel(String.format("Running (%d)", taskService.getByCategoryStatus(repositoryId, Task.Status.WORKING).size()));
+        filterCreated.setLabel(String.format("Created (%d)", taskService.getByCategoryAndStatus(repositoryId, Task.Status.RUNNABLE).size()));
+        filterRunning.setLabel(String.format("Running (%d)", taskService.getByCategoryAndStatus(repositoryId, Task.Status.RUNNING).size()));
         filterFinished.setLabel(
-                String.format("Finished (%d)", taskService.getByCategoryStatus(repositoryId, Task.Status.FINISHED).size()));
-        filterError.setLabel(String.format("Error (%d)", taskService.getByCategoryStatus(repositoryId, Task.Status.ERROR).size()));
-        filterHasMessages.setLabel(String.format("Only with error messages (%d)",
-                taskService.getAllTasks().stream().filter(t -> !t.getMessages().isEmpty()).count()));
-        progressBar.setValue(taskService.getByCategoryStatus(repositoryId, Task.Status.FINISHED, Task.Status.ERROR).size());
+                String.format("Finished (%d)", taskService.getByCategoryAndStatus(repositoryId, Task.Status.FINISHED).size()));
+        filterError.setLabel(String.format("Error (%d)", taskService.getByCategoryAndStatus(repositoryId, Task.Status.ERROR).size()));
+        filterHasMessages.setLabel(String.format("Only with error messages (%d)", taskService.getWithLogsOnly(repositoryId).size()));
+        progressBar.setValue(taskService.getByCategoryAndStatus(repositoryId, Task.Status.FINISHED, Task.Status.ERROR).size());
     }
 
-    private List<Task> filterTasks()
+    private List<GalleryTask> filterTasks()
     {
-        List<Task> tasks = repositoryId.isBlank() ? taskService.getAllTasks() : taskService.getByCategory(repositoryId);
-        tasks.removeIf(t -> filterHasMessages.getValue() && t.getMessages().isEmpty());
-        tasks.removeIf(t -> !filterCreated.getValue() && t.getStatus() == Task.Status.CREATED);
-        tasks.removeIf(t -> !filterError.getValue() && t.getStatus() == Task.Status.ERROR);
-        tasks.removeIf(t -> !filterFinished.getValue() && t.getStatus() == Task.Status.FINISHED);
-        tasks.removeIf(t -> !filterRunning.getValue() && t.getStatus() == Task.Status.WORKING);
+        Set<Task.Status> statusfilter = new HashSet<>();
+        if (Boolean.TRUE.equals(filterCreated.getValue()))
+        {
+            statusfilter.add(Task.Status.RUNNABLE);
+            statusfilter.add(Task.Status.QUEUED);
+        }
+
+        if (Boolean.TRUE.equals(filterError.getValue()))
+        {
+            statusfilter.add(Task.Status.ERROR);
+            statusfilter.add(Task.Status.ABORTED);
+        }
+
+        if (Boolean.TRUE.equals(filterFinished.getValue()))
+        {
+            statusfilter.add(Task.Status.FINISHED);
+        }
+
+        if (Boolean.TRUE.equals(filterRunning.getValue()))
+        {
+            statusfilter.add(Task.Status.RUNNING);
+        }
+
+        List<GalleryTask> tasks = taskService.getByCategoryAndStatus(repositoryId, statusfilter.toArray(new Task.Status[0]));
+        if(Boolean.TRUE.equals(filterHasMessages.getValue()))
+            tasks.removeIf(t -> t.getLogs().isEmpty());
         return tasks;
     }
 

@@ -19,8 +19,9 @@ public abstract class Task implements Runnable
     @Column(nullable = false)
     protected Status status;
 
-    @Access(AccessType.FIELD)
-    protected StringBuilder logs;
+    @Lob
+    @Column(nullable = false)
+    protected String logs;
 
     @Column(nullable = false)
     protected Long createdTimestamp;
@@ -39,7 +40,7 @@ public abstract class Task implements Runnable
             this.createdTimestamp = System.currentTimeMillis();
 
         if (this.logs == null)
-            this.logs = new StringBuilder();
+            this.logs = "";
 
         if (this.status == null)
             this.status = Status.RUNNABLE;
@@ -77,15 +78,14 @@ public abstract class Task implements Runnable
 
     public void setLogs(String logs)
     {
-        this.logs = new StringBuilder();
-        this.logs.append(logs);
+        this.logs = logs;
     }
 
     public void addLog(String log)
     {
         if (logs.length() > 0)
-            logs.append("\n");
-        logs.append(log);
+            logs += "\n";
+        logs += log;
     }
 
     @Override

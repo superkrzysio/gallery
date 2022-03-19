@@ -1,10 +1,12 @@
 package kw.tools.gallery.services;
 
 import kw.tools.gallery.CacheUtils;
+import kw.tools.gallery.models.GalleryTask;
+import kw.tools.gallery.persistence.GalleryTaskRepository;
 import kw.tools.gallery.processing.DirCrawler;
 import kw.tools.gallery.processing.ImageAccessor;
-import kw.tools.gallery.processing.Task;
 import kw.tools.gallery.processing.ThumbnailingTaskFactory;
+import kw.tools.gallery.taskengine.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +41,9 @@ public class ProcessingService
     @Autowired
     private ThumbnailingTaskFactory thumbnailingTaskFactory;
 
+    @Autowired
+    private GalleryTaskRepository<GalleryTask> taskRepository;
+
     public List<GalleryFolderDTO> fetchGalleries(String inPath)
     {
         List<GalleryFolderDTO> result = new ArrayList<>();
@@ -66,7 +71,8 @@ public class ProcessingService
 
     public void generate(String repositoryId, String galleryId, String galleryPath)
     {
-        taskService.execute(thumbnailingTaskFactory.create(
+
+        taskRepository.save(thumbnailingTaskFactory.create(
                 repositoryId,
                 galleryPath,
                 cacheUtils.generateGalleryDir(repositoryId, galleryId)
@@ -75,12 +81,12 @@ public class ProcessingService
 
     public ProcessingStatus getProcessingStatus(String repositoryId)
     {
-        List<Task.Status> statuses = taskService.getStatuses(repositoryId);
+        List<Task.Status> statuses = taskService.getStatusesForCategory(repositoryId);
         StatusSummary summary = new StatusSummary(
-                statuses.stream().filter(s -> s == Task.Status.CREATED).count(),
+                statuses.stream().filter(s -> s == Task.Status.RUNNABLE).count(),
                 statuses.stream().filter(s -> s == Task.Status.FINISHED).count(),
                 statuses.stream().filter(s -> s == Task.Status.ERROR).count(),
-                statuses.stream().filter(s -> s == Task.Status.WORKING).count()
+                statuses.stream().filter(s -> s == Task.Status.RUNNING).count()
         );
 
         if (isEverythingSuccessful(summary))

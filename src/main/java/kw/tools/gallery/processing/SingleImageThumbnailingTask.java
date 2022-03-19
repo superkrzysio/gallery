@@ -43,7 +43,7 @@ public class SingleImageThumbnailingTask extends ThumbnailingTask
     private ImageAccessor imageAccessor;
 
     @Override
-    public void executeImpl()
+    public void run()
     {
         List<String> images = imageAccessor.getImages(source);
         images = thumbnailSelectionFactory.get(selectionStrategy, verticalCount * horizontalCount).select(images);

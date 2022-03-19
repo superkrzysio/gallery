@@ -22,7 +22,6 @@ import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.services.GalleryService;
 import kw.tools.gallery.services.ProcessingService;
 import kw.tools.gallery.services.RepositoryService;
-import kw.tools.gallery.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Route("")
@@ -34,21 +33,17 @@ public class MainView extends VerticalLayout
 
     private final ProcessingService processingService;
 
-    private final TaskService taskService;
-
     private final Grid<Repository> repositoryGrid = new Grid<>();
     private final TextField repositoryInput = new TextField();
 
 
     public MainView(@Autowired RepositoryService repositoryService,
                     @Autowired GalleryService galleryService,
-                    @Autowired ProcessingService processingService,
-                    @Autowired TaskService taskService)
+                    @Autowired ProcessingService processingService)
     {
         this.repositoryService = repositoryService;
         this.galleryService = galleryService;
         this.processingService = processingService;
-        this.taskService = taskService;
 
         setHeight(100, Unit.PERCENTAGE);
 
@@ -68,7 +63,7 @@ public class MainView extends VerticalLayout
 
         Button refreshButton = new Button("Refresh", VaadinIcon.REFRESH.create());
         refreshButton.addClickListener(e -> refreshGrid());
-        HorizontalLayout controlButtonsWrapper = new HorizontalLayout(refreshButton, new Anchor("/tasks", "Tasks"));
+        HorizontalLayout controlButtonsWrapper = new HorizontalLayout(refreshButton /*, new Anchor("/tasks", "Tasks")*/);
         controlButtonsWrapper.setAlignItems(Alignment.CENTER);
         add(controlButtonsWrapper);
 
@@ -147,7 +142,6 @@ public class MainView extends VerticalLayout
             {
                 repositoryService.delete(id);
                 galleryService.deleteAll(id);
-                taskService.clearByCategory(id);
                 refreshGrid();
             }
         });

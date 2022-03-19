@@ -1,96 +1,73 @@
 package kw.tools.gallery.services;
 
-import kw.tools.gallery.processing.Task;
+import kw.tools.gallery.models.GalleryTask;
+import kw.tools.gallery.persistence.GalleryTaskRepository;
+import kw.tools.gallery.taskengine.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * Task factory class, allows managing tasks handles.
+ * Task managing class, designed to fetch, create and save tasks.
+ * Saving a task means picking it up by the task engine, so there is no direct dependency on task engine,
+ * except this comment.
  */
 @Service
 public class TaskService
 {
-    private final HashMap<String, Set<Task>> tasks = new HashMap<>();
-    private final ExecutorService executor = Executors.newFixedThreadPool(4);
+    @Autowired
+    private GalleryTaskRepository<GalleryTask> taskRepository;
 
-//    public Task execute(Runnable from, String id)
-//    {
-//        Task t = new Task(from, id);
-//        return executeTask(t);
-//    }
-//
-//    public Task execute(Runnable from)
-//    {
-//        Task t = new Task(from);
-//        return executeTask(t);
-//    }
-
-    public Task execute(Task t)
+    /**
+     * Get tasks by category. Category must be set.
+     */
+    public List<GalleryTask> getByCategory(String category)
     {
-        if (!tasks.containsKey(t.getCategory()))
-        {
-            tasks.put(t.getCategory(), new HashSet<>());
-        }
-        tasks.get(t.getCategory()).add(t);
-        executor.execute(t);
-        return t;
-    }
-
-    public List<Task> getByCategory(String category)
-    {
-        return category.isBlank() ? getAllTasksStream().collect(Collectors.toList()) : new ArrayList<>(getNonNullForCategory(category));
+        requireCategory(category);
+        return taskRepository.findByCategory(category);
     }
 
     /**
-     * Return tasks by category name and list of statuses. If category is blank, filter all tasks by statuses.
-     *
-     * @param category
-     * @param statuses
-     * @return
+     * Return tasks by category name and list of statuses. Category must be set.
      */
-    public List<Task> getByCategoryStatus(String category, Task.Status... statuses)
+    public List<GalleryTask> getByCategoryAndStatus(String category, Task.Status... statuses)
     {
-        Stream<Task> selected = category.isBlank() ? getAllTasksStream() : getByCategory(category).stream();
-        return selected
-                .filter(t -> Arrays.asList(statuses).contains(t.getStatus()))
-                .collect(Collectors.toUnmodifiableList());
+        requireCategory(category);
+        return taskRepository.findByCategoryAndStatuses(category, Arrays.asList(statuses));
     }
 
-    public List<Task> getByStatus(Task.Status... statuses)
+    /**
+     * Get ALL tasks by statuses.
+     */
+    public List<GalleryTask> getByStatus(Task.Status... statuses)
     {
-        return getAllTasks()
-                .stream()
-                .filter(t -> Arrays.asList(statuses).contains(t.getStatus()))
-                .collect(Collectors.toUnmodifiableList());
+        return taskRepository.findByStatuses(Arrays.asList(statuses));
     }
 
-    public List<Task.Status> getStatuses(String category)
+    public List<Task.Status> getStatusesForCategory(String category)
     {
-        return getNonNullForCategory(category).stream().map(Task::getStatus).collect(Collectors.toList());
+        return getByCategory(category).stream().map(Task::getStatus).collect(Collectors.toList());
     }
 
-    public void clearByCategory(String category)
+    public List<GalleryTask> getWithLogsOnly(String category)
     {
-        tasks.remove(category);
+        requireCategory(category);
+        return taskRepository.findWithLogs(category);
     }
 
-    private Set<Task> getNonNullForCategory(String category)
+    private static void requireCategory(String category)
     {
-        return tasks.get(category) != null ? tasks.get(category) : new HashSet<>();
+        Objects.requireNonNull(category);
+        if (category.isBlank())
+        {
+            throw new IllegalArgumentException("Category must be set but found blank");
+        }
     }
 
-    public List<Task> getAllTasks()
+    public List<Task> getAll()
     {
-        return getAllTasksStream().collect(Collectors.toList());
-    }
-
-    private Stream<Task> getAllTasksStream()
-    {
-        return tasks.values().stream().flatMap(Collection::stream);
+        return taskRepository.findAll();
     }
 }

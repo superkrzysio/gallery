@@ -1,5 +1,7 @@
 package kw.tools.gallery.processing;
 
+import kw.tools.gallery.taskengine.Task;
+
 public interface ThumbnailingTaskFactory
 {
     /**

@@ -1,8 +1,8 @@
 package kw.tools.gallery.processing.impl;
 
-import kw.tools.gallery.processing.Task;
 import kw.tools.gallery.processing.ThumbnailingTask;
 import kw.tools.gallery.processing.ThumbnailingTaskFactory;
+import kw.tools.gallery.taskengine.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -26,7 +26,7 @@ public class ThumbnailingTaskFactoryImpl implements ThumbnailingTaskFactory
         ThumbnailingTask task = applicationContext.getBean(strategy, ThumbnailingTask.class);
         task.setSource(source);
         task.setTarget(target);
-        task.category = repoId;
+        task.setCategory(repoId);
         return task;
     }
 }
