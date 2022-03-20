@@ -8,7 +8,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -20,8 +19,8 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.services.GalleryService;
-import kw.tools.gallery.services.ProcessingService;
 import kw.tools.gallery.services.RepositoryService;
+import kw.tools.gallery.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Route("")
@@ -31,7 +30,7 @@ public class MainView extends VerticalLayout
 
     private final GalleryService galleryService;
 
-    private final ProcessingService processingService;
+    private final TaskService taskService;
 
     private final Grid<Repository> repositoryGrid = new Grid<>();
     private final TextField repositoryInput = new TextField();
@@ -39,11 +38,11 @@ public class MainView extends VerticalLayout
 
     public MainView(@Autowired RepositoryService repositoryService,
                     @Autowired GalleryService galleryService,
-                    @Autowired ProcessingService processingService)
+                    @Autowired TaskService taskService)
     {
         this.repositoryService = repositoryService;
         this.galleryService = galleryService;
-        this.processingService = processingService;
+        this.taskService = taskService;
 
         setHeight(100, Unit.PERCENTAGE);
 
@@ -84,13 +83,13 @@ public class MainView extends VerticalLayout
 
         repositoryGrid.addComponentColumn(repository -> {
             VerticalLayout wrapper = new VerticalLayout();
-            wrapper.add(new Anchor("tasks/" + repository.getId(), interpretProcessingStatus(processingService.getProcessingStatus(repository.getId()))));
-            if (!interpretIsProcessingFinished(processingService.getProcessingStatus(repository.getId())))
+            wrapper.add(new Anchor("tasks/" + repository.getId(), calculateProcessingIcon(repository.getId())));
+            if (!isProcessingFinished(repository.getId()))
             {
                 ProgressBar pg = new ProgressBar();
                 pg.setMin(0);
-                pg.setMax(galleryService.getGalleryCountForRepo(repository.getId()));
-                pg.setValue(processingService.getFinishedCount(repository.getId()));
+                pg.setMax(taskService.getAllCount(repository.getId()));
+                pg.setValue(taskService.getFinishedCount(repository.getId()));
                 wrapper.add(pg);
             }
             wrapper.setAlignItems(Alignment.CENTER);
@@ -115,12 +114,12 @@ public class MainView extends VerticalLayout
 
         add(repositoryGrid);
 
-
     }
 
     private void addRepo(String path)
     {
-        repositoryService.add(path);
+        Repository repo = repositoryService.add(path);
+        taskService.createScanningTask(repo.getId(), path);
         refreshGrid();
     }
 
@@ -147,29 +146,23 @@ public class MainView extends VerticalLayout
         });
     }
 
-    private Component interpretProcessingStatus(ProcessingService.ProcessingStatus status)
+    private Component calculateProcessingIcon(String repoId)
     {
-        switch (status)
+        if (taskService.getUnfinishedCount(repoId) > 0)
         {
-            case SUCCESSFUL:
-                return VaadinIcon.CHECK.create();
-            case ERRORS:
-                return VaadinIcon.WARNING.create();
-            case IDLE:
-                return VaadinIcon.QUESTION.create();
-            case WORKING:
-                return VaadinIcon.HOURGLASS.create();
-            case UNEXPECTED:
-                return new Span("Unexpected status");
-            default:
-                return new Span("Status not implemented!");
+            return VaadinIcon.HOURGLASS.create();
         }
+
+        if (taskService.isAllSuccessful(repoId))
+        {
+            return VaadinIcon.CHECK.create();
+        }
+
+        return VaadinIcon.WARNING.create();
     }
 
-    private boolean interpretIsProcessingFinished(ProcessingService.ProcessingStatus status)
+    private boolean isProcessingFinished(String repoId)
     {
-        return status == ProcessingService.ProcessingStatus.SUCCESSFUL
-                || status == ProcessingService.ProcessingStatus.ERRORS
-                || status == ProcessingService.ProcessingStatus.UNEXPECTED;
+        return taskService.getUnfinishedCount(repoId) == 0;
     }
 }

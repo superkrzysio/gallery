@@ -11,14 +11,15 @@ class RepositoryTest
     {
         String path = "abcABC1230_abcABC1230_";
         Repository repo = new Repository("abcABC1230_abcABC1230_");
-        Assertions.assertEquals(path, repo.getSafeName());
+        Assertions.assertEquals(path, Repository.createSafeName(path));
     }
 
     @Test
     public void getSafeNameFullPath()
     {
-        Repository repo = new Repository("/a/b/c.x");
-        Assertions.assertEquals("-a-b-c-x", repo.getSafeName());
+        String path = "/a/b/c.x";
+        Repository repo = new Repository(path);
+        Assertions.assertEquals("-a-b-c-x", Repository.createSafeName(path));
     }
 
 }

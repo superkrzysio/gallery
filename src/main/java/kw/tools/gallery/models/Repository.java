@@ -18,7 +18,7 @@ public class Repository
     public Repository(final String path)
     {
         this.path = path;
-        this.id = getSafeName();
+        this.id = createSafeName(path);
     }
 
     public String getPath()
@@ -29,7 +29,7 @@ public class Repository
     public void setPath(String path)
     {
         this.path = path;
-        this.id = getSafeName();
+        this.id = createSafeName(path);
     }
 
     public String getId()
@@ -42,7 +42,7 @@ public class Repository
         this.id = id;
     }
 
-    public String getSafeName()
+    public static String createSafeName(String path)
     {
         return path.replaceAll("[^\\w]", "-");
     }

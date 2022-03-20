@@ -1,6 +1,7 @@
 package kw.tools.gallery.processing;
 
 import ij.IJ;
+import kw.tools.gallery.processing.impl.ImageIOException;
 
 public interface ImgUtils
 {
@@ -12,5 +13,5 @@ public interface ImgUtils
         IJ.openImage(ImgUtils.class.getClassLoader().getResource("foo.jpg").getPath());
     }
 
-    void resizeToWidth(String source, String target, int width);
+    void resizeToWidth(String source, String target, int width) throws ImageIOException;
 }

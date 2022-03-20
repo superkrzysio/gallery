@@ -76,7 +76,7 @@ public class TasksView extends VerticalLayout implements HasUrlParameter<String>
 
         currentTasksGrid = new Grid<>();
         currentTasksGrid.setSelectionMode(Grid.SelectionMode.NONE);
-        currentTasksGrid.addColumn(Task::getId).setHeader("Thread name");
+        currentTasksGrid.addColumn(Task::getName).setHeader("Thread name");
         currentTasksGrid.addColumn(task -> task.getStatus().toString().toLowerCase(Locale.ROOT)).setHeader("Status");
 
         // all the fuss just to display newlines
@@ -152,7 +152,7 @@ public class TasksView extends VerticalLayout implements HasUrlParameter<String>
         }
 
         List<GalleryTask> tasks = taskService.getByCategoryAndStatus(repositoryId, statusfilter.toArray(new Task.Status[0]));
-        if(Boolean.TRUE.equals(filterHasMessages.getValue()))
+        if (Boolean.TRUE.equals(filterHasMessages.getValue()))
             tasks.removeIf(t -> t.getLogs().isEmpty());
         return tasks;
     }

@@ -2,6 +2,7 @@ package kw.tools.gallery.models;
 
 import net.bytebuddy.utility.RandomString;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
@@ -17,6 +18,8 @@ public class Gallery
     private String id = RandomString.make(ID_LENGTH);
 
     private int pictureCount;
+
+    @Column(length = 2000)
     private String path;
     private String name;
     private int rating;

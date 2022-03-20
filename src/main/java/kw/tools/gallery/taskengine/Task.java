@@ -51,6 +51,11 @@ public abstract class Task implements Runnable
         return id;
     }
 
+    public String getName()
+    {
+        return this.getClass().getSimpleName() + "-" + id;
+    }
+
     public void setId(Integer id)
     {
         this.id = id;
@@ -68,7 +73,7 @@ public abstract class Task implements Runnable
 
     public String getLogs()
     {
-        return logs.toString();
+        return logs;
     }
 
     public void setApplicationContext(ApplicationContext applicationContext)

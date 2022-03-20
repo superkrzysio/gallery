@@ -6,28 +6,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class CacheUtils
 {
     private final static Logger LOG = LoggerFactory.getLogger(CacheUtils.class);
-    public final static String PATH_SEPARATOR = "/";
+    private final static Map<String, Map<String, Path>> pathCache = new HashMap<>();
 
     @Value("${cache.dir}")
     private String cacheDir;
-
-    public String generateGalleryDir(String repositoryId, String galleryId)
-    {
-        return createDir(cacheDir, repositoryId, galleryId);
-    }
-
-    public Path getCacheDirForRepository(String repositoryId)
-    {
-        return Path.of(cacheDir).resolve(repositoryId);
-    }
 
     public String getCacheDirForGallery(String repoId, String galleryId)
     {
@@ -36,24 +29,23 @@ public class CacheUtils
 
     public Path getCacheDirPathForGallery(String repoId, String galleryId)
     {
-        return Path.of(cacheDir).resolve(repoId).resolve(galleryId).toAbsolutePath();
+        return pathCache.computeIfAbsent(repoId, k -> new HashMap<>())
+                .computeIfAbsent(galleryId, g -> {
+                    Path dir = Path.of(cacheDir).resolve(repoId).resolve(galleryId).toAbsolutePath();
+                    createDir(dir);
+                    return dir;
+                });
     }
 
-    private static String createDir(String rootDir, String outputDir, String outputId)
+    private static void createDir(Path dir)
     {
-        String fullpath = Path.of(rootDir).resolve(outputDir).resolve(outputId).toString();
-
-        if (LOG.isDebugEnabled())
-        {
-            LOG.debug("Creating cache dir: " + fullpath);
-        }
         try
         {
-            return Files.createDirectories(Path.of(fullpath)).toString() + PATH_SEPARATOR;
+            Files.createDirectories(dir);
         } catch (IOException e)
         {
-            LOG.error("Could not create cache dir: " + fullpath, e);
-            return null;
+            LOG.error("Could not create cache dir: " + dir, e);
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -87,7 +79,7 @@ public class CacheUtils
     {
         try
         {
-            Files.walk(Path.of(cacheDir).resolve(repositoryId).resolve(galleryId))
+            Files.walk(getCacheDirPathForGallery(repositoryId, galleryId))
                     .sorted(Comparator.reverseOrder())
                     .forEach(this::delete);
         } catch (IOException e)

@@ -1,16 +1,19 @@
 package kw.tools.gallery.services;
 
 import kw.tools.gallery.CacheUtils;
-import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.models.Repository;
-import kw.tools.gallery.persistence.GalleryRepository;
 import kw.tools.gallery.persistence.RepositoryRepository;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
+/**
+ * Repository management service
+ */
 @Service
 public class RepositoryService
 {
@@ -18,13 +21,7 @@ public class RepositoryService
     private CacheUtils cacheUtils;
 
     @Autowired
-    private GalleryRepository galleryRepository;
-
-    @Autowired
     private RepositoryRepository repositoryRepository;
-
-    @Autowired
-    private ProcessingService processingService;
 
     public List<Repository> getAll()
     {
@@ -34,29 +31,29 @@ public class RepositoryService
     public Repository add(String path)
     {
         Repository repository = new Repository();
-        repository.setPath(stripTrailingSlash(path));
-
+        path = stripTrailingSlash(path);
+        String id = stripHomeDirectory(path);
+        repository.setPath(path);
+        repository.setId(Repository.createSafeName(id));
         repositoryRepository.save(repository);
-
-        generate(repository);
-        // todo: remove unfinished thumb creation or even introduce transaction layer for files and rollback it if something fails
         return repository;
     }
 
     public Repository regenerate(String id)
     {
-        Optional<Repository> maybeRepo = repositoryRepository.findById(id);
-        if (maybeRepo.isEmpty())
-        {
-            return null;
-        }
-        Repository repo = maybeRepo.get();
-        cacheUtils.delete(repo.getId());
-        // todo: actually do not delete all galleries (and lose flags, tags, ratings, etc)
-        //  but only re-generate thumbnails for existing galleries and scan for any new
-        galleryRepository.deleteByRepositoryId(repo.getId());
-        generate(repo);
-        return repo;
+        throw new NotImplementedException("Deimplemented");
+//        Optional<Repository> maybeRepo = repositoryRepository.findById(id);
+//        if (maybeRepo.isEmpty())
+//        {
+//            return null;
+//        }
+//        Repository repo = maybeRepo.get();
+//        cacheUtils.delete(repo.getId());
+//        // todo: actually do not delete all galleries (and lose flags, tags, ratings, etc)
+//        //  but only re-generate thumbnails for existing galleries and scan for any new
+//        galleryRepository.deleteByRepositoryId(repo.getId());
+////        generate(repo);
+//        return repo;
     }
 
     public Repository delete(String id)
@@ -67,7 +64,7 @@ public class RepositoryService
         return repo;
     }
 
-    private String stripTrailingSlash(String path)
+    private static String stripTrailingSlash(String path)
     {
         if (path.endsWith("/"))
         {
@@ -76,19 +73,15 @@ public class RepositoryService
         return path;
     }
 
-    private void generate(Repository repository)
+    private static String stripHomeDirectory(String path)
     {
-        for (ProcessingService.GalleryFolderDTO dto : processingService.fetchGalleries(repository.getPath()))
+        if (path.startsWith("/home/"))
         {
-            Gallery gallery = new Gallery();
-            gallery.setName(dto.filename);
-            gallery.setPath(dto.fullPath);
-            gallery.setPictureCount(dto.pictureCount);
-            gallery.setRepositoryId(repository.getId());
-            galleryRepository.save(gallery);
-
-            processingService.generate(repository.getId(), gallery.getId(), gallery.getPath());
+            List<String> parts = new ArrayList<>(Arrays.asList(path.split("/")));
+            parts.subList(0, 3).clear();
+            path = String.join("/", parts);
         }
+        return path;
     }
 
     public Repository get(String repoId)
