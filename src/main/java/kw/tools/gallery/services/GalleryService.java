@@ -71,6 +71,10 @@ public class GalleryService
         return galleries;
     }
 
+    /**
+     * Create a gallery, count its images and save in DB.
+     * @return Created gallery ID
+     */
     public Optional<String> create(String repoId, Path path)
     {
         int imageCount = imageAccessor.getImages(path).size();

@@ -1,16 +1,31 @@
 package kw.tools.gallery.processing;
 
-public interface TaskFactory
+import org.springframework.stereotype.Component;
+
+@Component
+public class TaskFactory
 {
     /**
      * Creates a task that will generate thumbs from the <tt>path</tt> folder.
      * Further generation configuration will be wired at runtime.
      */
-    ThumbnailingTask createThumbnailingTask(String repoId, String source, String target);
+    public ThumbnailingTask createThumbnailingTask(String repoId, String source, String target)
+    {
+        ThumbnailingTask task = new ThumbnailingTask();
+        task.setCategory(repoId);
+        task.setSource(source);
+        task.setTarget(target);
+        return task;
+    }
 
     /**
      * Creates a task that will crawl the directory structure and perform further actions.
      */
-    ScanningTask createScanningTask(String category, String path);
-
+    public ScanningTask createScanningTask(String category, String path)
+    {
+        ScanningTask t = new ScanningTask();
+        t.setCategory(category);
+        t.setPath(path);
+        return t;
+    }
 }

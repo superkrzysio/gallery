@@ -1,4 +1,4 @@
-package kw.tools.gallery.processing.impl;
+package kw.tools.gallery.processing;
 
 public class ImageIOException extends Exception
 {

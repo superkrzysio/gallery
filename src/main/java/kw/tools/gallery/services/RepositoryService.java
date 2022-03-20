@@ -28,6 +28,11 @@ public class RepositoryService
         return repositoryRepository.findAll();
     }
 
+    /**
+     * Create a repository and save it into DB.<br/>
+     * @return Created repository object.
+     */
+    // Possible todo: inconsistent signature with GalleryService.create() which performs similar operation.
     public Repository add(String path)
     {
         Repository repository = new Repository();
@@ -41,7 +46,7 @@ public class RepositoryService
 
     public Repository regenerate(String id)
     {
-        throw new NotImplementedException("Deimplemented");
+        throw new NotImplementedException("Deimplemented.");    // todo: move the logic
 //        Optional<Repository> maybeRepo = repositoryRepository.findById(id);
 //        if (maybeRepo.isEmpty())
 //        {
@@ -49,7 +54,7 @@ public class RepositoryService
 //        }
 //        Repository repo = maybeRepo.get();
 //        cacheUtils.delete(repo.getId());
-//        // todo: actually do not delete all galleries (and lose flags, tags, ratings, etc)
+//        // ~to do~: actually do not delete all galleries (and lose flags, tags, ratings, etc)
 //        //  but only re-generate thumbnails for existing galleries and scan for any new
 //        galleryRepository.deleteByRepositoryId(repo.getId());
 ////        generate(repo);

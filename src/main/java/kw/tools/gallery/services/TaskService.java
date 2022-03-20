@@ -102,11 +102,19 @@ public class TaskService
         taskRepository.save(t);
     }
 
+    /**
+     * Create and save a scanning task.<br/>
+     * Just a delegate to lower layers.
+     */
     public void createScanningTask(String repoId, String path)
     {
         taskRepository.save(taskFactory.createScanningTask(repoId, path));
     }
 
+    /**
+     * Create and save a thumbnailing task.<br/>
+     * Just a delegate to lower layers.
+     */
     public void createThumbnailingTask(String repoId, String source, String target)
     {
         taskRepository.save(taskFactory.createThumbnailingTask(repoId, source, target));

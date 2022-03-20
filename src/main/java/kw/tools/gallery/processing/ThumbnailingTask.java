@@ -2,7 +2,6 @@ package kw.tools.gallery.processing;
 
 import kw.tools.gallery.CacheUtils;
 import kw.tools.gallery.models.GalleryTask;
-import kw.tools.gallery.processing.impl.ImageIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

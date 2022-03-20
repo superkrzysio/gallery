@@ -1,6 +1,5 @@
 package kw.tools.gallery.processing;
 
-import kw.tools.gallery.processing.impl.ThumbnailSelectionFactoryImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -13,7 +12,7 @@ import java.util.stream.Stream;
 
 public class ThumbnailSelectionFactoryTest
 {
-    private final static ThumbnailSelectionFactory factory = new ThumbnailSelectionFactoryImpl();
+    private final static ThumbnailSelectionFactory factory = new ThumbnailSelectionFactory();
 
     @ParameterizedTest
     @MethodSource("getTestPairs")
