@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 public interface GalleryRepository extends JpaRepository<Gallery, String>
 {
@@ -16,4 +17,6 @@ public interface GalleryRepository extends JpaRepository<Gallery, String>
     @Transactional
     @Modifying
     void deleteByRepositoryId(String id);
+
+    Optional<Gallery> findByRepositoryIdAndPath(String repoId, String path);
 }

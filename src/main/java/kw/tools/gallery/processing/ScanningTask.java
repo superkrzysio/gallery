@@ -39,7 +39,7 @@ public class ScanningTask extends GalleryTask
         try
         {
             dirCrawler.forEach(path, p -> {
-                Optional<String> galId = galleryService.create(category, p);
+                Optional<String> galId = galleryService.createIfNotExist(category, p);
                 galId.ifPresent(id -> taskService.createThumbnailingTask(
                         category,
                         p.toString(),
@@ -48,7 +48,7 @@ public class ScanningTask extends GalleryTask
             });
         } catch (IOException e)
         {
-            addLog(String.format("Error when processing path '%s': %s", path, e.getMessage()));
+            addLog(String.format("Error when processing path '%s': %s", path, e));
         }
     }
 

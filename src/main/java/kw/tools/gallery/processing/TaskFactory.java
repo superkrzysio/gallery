@@ -28,4 +28,11 @@ public class TaskFactory
         t.setPath(path);
         return t;
     }
+
+    public RemovingTask createRemovingTask(String repoId)
+    {
+        RemovingTask t = new RemovingTask();
+        t.setCategory(repoId);
+        return t;
+    }
 }

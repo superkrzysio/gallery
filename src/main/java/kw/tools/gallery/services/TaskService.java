@@ -119,4 +119,13 @@ public class TaskService
     {
         taskRepository.save(taskFactory.createThumbnailingTask(repoId, source, target));
     }
+
+    /**
+     * Create and save a task, which will remove DB entries for galleries that no longer exist on disk.
+     * Just a delegate to lower layer.
+     */
+    public void createRemovingTask(String repoId)
+    {
+        taskRepository.save(taskFactory.createRemovingTask(repoId));
+    }
 }

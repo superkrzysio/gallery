@@ -3,13 +3,13 @@ package kw.tools.gallery.services;
 import kw.tools.gallery.CacheUtils;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.persistence.RepositoryRepository;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository management service
@@ -30,6 +30,7 @@ public class RepositoryService
 
     /**
      * Create a repository and save it into DB.<br/>
+     *
      * @return Created repository object.
      */
     // Possible todo: inconsistent signature with GalleryService.create() which performs similar operation.
@@ -38,27 +39,28 @@ public class RepositoryService
         Repository repository = new Repository();
         path = stripTrailingSlash(path);
         String id = stripHomeDirectory(path);
+        id = removeEdgeDashes(id);
+        id = removeMultipleDashes(id);
         repository.setPath(path);
         repository.setId(Repository.createSafeName(id));
         repositoryRepository.save(repository);
         return repository;
     }
 
-    public Repository regenerate(String id)
+    private String removeMultipleDashes(String id)
     {
-        throw new NotImplementedException("Deimplemented.");    // todo: move the logic
-//        Optional<Repository> maybeRepo = repositoryRepository.findById(id);
-//        if (maybeRepo.isEmpty())
-//        {
-//            return null;
-//        }
-//        Repository repo = maybeRepo.get();
-//        cacheUtils.delete(repo.getId());
-//        // ~to do~: actually do not delete all galleries (and lose flags, tags, ratings, etc)
-//        //  but only re-generate thumbnails for existing galleries and scan for any new
-//        galleryRepository.deleteByRepositoryId(repo.getId());
-////        generate(repo);
-//        return repo;
+        while (id.contains("--"))
+            id = id.replaceAll("--", "-");
+        return id;
+    }
+
+    private String removeEdgeDashes(String id)
+    {
+        while (id.startsWith("-"))
+            id = id.substring(1);
+        while (id.endsWith("-"))
+            id = id.substring(0, id.length() - 1);
+        return id;
     }
 
     public Repository delete(String id)
@@ -89,8 +91,8 @@ public class RepositoryService
         return path;
     }
 
-    public Repository get(String repoId)
+    public Optional<Repository> get(String repoId)
     {
-        return repositoryRepository.getById(repoId);
+        return repositoryRepository.findById(repoId);
     }
 }

@@ -130,7 +130,7 @@ public class MainView extends VerticalLayout
 
     private void regenerateRepo(String id)
     {
-        repositoryService.regenerate(id);
+        getUI().orElseThrow().getPage().setLocation("/regenerate/" + id);
     }
 
     private void deleteRepo(String id)

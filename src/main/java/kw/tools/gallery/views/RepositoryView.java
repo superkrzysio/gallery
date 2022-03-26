@@ -22,6 +22,7 @@ import kw.tools.gallery.services.RepositoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 
 @Route("repository")
 @CssImport("styles/styles.css")
@@ -82,10 +83,15 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
     public void setParameter(BeforeEvent beforeEvent, String param)
     {
         this.repoId = param;
-        Repository repo = repositoryService.get(repoId);
-        List<Gallery> gals = galleryService.getFullForRepo(repoId);
-        repositoryTitle.setText(repo.getId());
-        masterGrid.setItems(gals);
+        Optional<Repository> repo = repositoryService.get(repoId);
+        repo.ifPresentOrElse(r -> {
+                    List<Gallery> gals = galleryService.getAllFull(repoId);
+                    repositoryTitle.setText(r.getId());
+                    masterGrid.setItems(gals);
+
+                },
+                () -> getUI().get().getPage().setLocation("/"));
+
     }
 
     private void deleteGallery(String id, Button buttonHandle)
@@ -94,7 +100,7 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
                 "PERMANENTLY FROM THE DISK?\")").then(decision -> {
             if (decision.asBoolean())
             {
-                galleryService.delete(id);
+                galleryService.hardDelete(id);
                 buttonHandle.setEnabled(false);
             }
         });

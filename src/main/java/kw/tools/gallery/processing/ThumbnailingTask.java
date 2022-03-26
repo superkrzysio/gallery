@@ -61,6 +61,7 @@ public class ThumbnailingTask extends GalleryTask
     {
         Objects.requireNonNull(source);
         Objects.requireNonNull(target);
+        cacheUtils.clear(target);
         List<String> images = imageAccessor.getImages(source);
         images = thumbnailSelectionFactory.get(selectionStrategy, imageCount).select(images);
         boolean error = false;

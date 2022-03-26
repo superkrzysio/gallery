@@ -25,6 +25,9 @@ public class Gallery
     private int rating;
     private String repositoryId;
 
+    /**
+     * Paths to thumbnails are not stored, they are fetched on demand.
+     */
     @Transient
     private List<String> thumbnails = new ArrayList<>();
 
