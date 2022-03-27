@@ -1,0 +1,46 @@
+/* Taken from https://codepen.io/melnik909/pen/OvaxVY under MIT license according to Codepen ToS.
+ * Greatly simplified, I was forced to use static svg/png, because embedded svg somehow failed with Vaadin grid.
+ */
+
+.screen-reader{
+  width: var(--screenReaderWidth, 1px) !important;
+  height: var(--screenReaderHeight, 1px) !important;
+  padding: var(--screenReaderPadding, 0) !important;
+  border: var(--screenReaderBorder, none) !important;
+
+  position: var(--screenReaderPosition, absolute) !important;
+  clip: var(--screenReaderClip, rect(1px, 1px, 1px, 1px)) !important;
+  overflow: var(--screenReaderOverflow, hidden) !important;
+}
+
+.rating{
+  display: flex;
+}
+
+.rating__item{
+  cursor: pointer;
+  position: relative;
+  opacity: 40%;
+}
+
+.rating__star{
+  display: block;
+  width: 1em;
+  height: 1em;
+}
+
+.rating:hover,
+.rating__control:nth-of-type(1):checked ~ .rating__item:nth-of-type(1),
+.rating__control:nth-of-type(2):checked ~ .rating__item:nth-of-type(-n+2),
+.rating__control:nth-of-type(3):checked ~ .rating__item:nth-of-type(-n+3),
+.rating__control:nth-of-type(4):checked ~ .rating__item:nth-of-type(-n+4),
+.rating__control:nth-of-type(5):checked ~ .rating__item:nth-of-type(-n+5){
+  opacity: 100%;
+}
+
+
+.rating{
+  --ratingSize: 1em;
+  --ratingColor: #eee;
+  --ratingColorActive: #ffcc00;
+}

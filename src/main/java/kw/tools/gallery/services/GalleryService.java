@@ -178,4 +178,11 @@ public class GalleryService
         return true;
     }
 
+    @Transactional
+    public void setRating(String galId, int rating)
+    {
+        Gallery gallery = galleryRepository.getById(galId);
+        gallery.setRating(rating);
+        galleryRepository.save(gallery);
+    }
 }

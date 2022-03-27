@@ -1,15 +1,12 @@
 package kw.tools.gallery.views;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
@@ -19,6 +16,7 @@ import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.services.GalleryService;
 import kw.tools.gallery.services.RepositoryService;
+import kw.tools.gallery.views.gridplugins.GridPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -26,6 +24,7 @@ import java.util.Optional;
 
 @Route("repository")
 @CssImport("styles/styles.css")
+@CssImport("styles/rating.css")
 public class RepositoryView extends VerticalLayout implements HasUrlParameter<String>
 {
     @Autowired
@@ -34,16 +33,23 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
     @Autowired
     private GalleryService galleryService;
 
+    private final List<GridPlugin> gridPlugins;
+
     private String repoId;
 
     private final Grid<Gallery> masterGrid = new Grid<>();
 
     private final H2 repositoryTitle = new H2();
 
-    public RepositoryView()
+    public RepositoryView(@Autowired List<GridPlugin> gplugins)
     {
-        add(new Anchor("/", "Back"));
+        this.gridPlugins = gplugins;
         setHeight(100, Unit.PERCENTAGE);
+
+        add(new Anchor("/", "Back"));
+        add(repositoryTitle);
+        gridPlugins.forEach(plugin -> plugin.getHeader().ifPresent(this::add));
+
         masterGrid.setHeight(100, Unit.PERCENTAGE);
         masterGrid.setSelectionMode(Grid.SelectionMode.NONE);
         masterGrid.addComponentColumn(gallery -> {
@@ -62,20 +68,14 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
                 imgRow.add(img);
             }
             return new VerticalLayout(headersRow, imgRow);
-        }).setKey("gallery").setAutoWidth(true).setFlexGrow(1).setComparator(Gallery::getId).setSortable(true);
+        }).setKey("gallery").setAutoWidth(true).setComparator(Gallery::getId).setSortable(true);
 
         masterGrid.addComponentColumn(gallery -> {
-            HorizontalLayout wrapper = new HorizontalLayout();
-            Button delete = new Button();
-            delete.setIcon(VaadinIcon.TRASH.create());
-            delete.getElement().getThemeList().add("error");
-            delete.setDisableOnClick(false);
-            delete.addClickListener(e -> deleteGallery(gallery.getId(), delete));
-            wrapper.add(delete);
-            wrapper.setAlignItems(Alignment.CENTER);
-            return wrapper;
-        }).setKey("actions").setAutoWidth(false).setFlexGrow(0);
-        add(repositoryTitle);
+            VerticalLayout verticalWrapper = new VerticalLayout();
+            gridPlugins.forEach(plugin -> plugin.getComponent(gallery).ifPresent(verticalWrapper::add));
+            verticalWrapper.setAlignItems(Alignment.CENTER);
+            return verticalWrapper;
+        }).setKey("actions").setAutoWidth(false).setFlexGrow(1);
         add(masterGrid);
     }
 
@@ -84,25 +84,10 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
     {
         this.repoId = param;
         Optional<Repository> repo = repositoryService.get(repoId);
-        repo.ifPresentOrElse(r -> {
-                    List<Gallery> gals = galleryService.getAllFull(repoId);
-                    repositoryTitle.setText(r.getId());
-                    masterGrid.setItems(gals);
-
-                },
-                () -> getUI().get().getPage().setLocation("/"));
-
-    }
-
-    private void deleteGallery(String id, Button buttonHandle)
-    {
-        UI.getCurrent().getPage().executeJs("return confirm(\"Are you sure you want to DELETE THIS GALLERY FOLDER " +
-                "PERMANENTLY FROM THE DISK?\")").then(decision -> {
-            if (decision.asBoolean())
-            {
-                galleryService.hardDelete(id);
-                buttonHandle.setEnabled(false);
-            }
+        repo.ifPresent(r -> {
+            List<Gallery> gals = galleryService.getAllFull(repoId);
+            repositoryTitle.setText(r.getId());
+            masterGrid.setItems(gals);
         });
     }
 }
