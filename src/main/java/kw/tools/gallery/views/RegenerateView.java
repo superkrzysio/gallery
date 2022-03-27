@@ -50,6 +50,7 @@ public class RegenerateView extends VerticalLayout implements HasUrlParameter<St
         targetRepositoryInput = new TextField();
         targetRepositoryInput.setEnabled(false);
         targetRepositoryInput.setMaxWidth(100, Unit.PERCENTAGE);
+        add(targetRepositoryInput);
         VerticalLayout checkboxGroup = new VerticalLayout();
 
         addNewCheckbox = new Checkbox("Scan for new galleries", true);
@@ -97,7 +98,7 @@ public class RegenerateView extends VerticalLayout implements HasUrlParameter<St
         }
         if (removeMissingCheckbox.getValue())
         {
-            taskService.createRemovingTask(repo.getId());
+            taskService.createGalleryClensingTask(repo.getId());
         }
         this.getUI().get().getPage().setLocation("/");
     }

@@ -139,9 +139,7 @@ public class MainView extends VerticalLayout
         page.executeJs(String.format("return confirm(\"Are you sure you want to delete '%s' with all its galleries and data?\")", id)).then(result -> {
             if (result.asBoolean())
             {
-                repositoryService.delete(id);
-                galleryService.deleteAll(id);
-                refreshGrid();
+                taskService.createRepositoryRemovingTask(id);
             }
         });
     }

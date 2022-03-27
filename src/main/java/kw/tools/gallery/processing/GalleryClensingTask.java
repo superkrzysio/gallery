@@ -7,8 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
+/**
+ * Task that removes a gallery from DB if the original directory is not a sane gallery. Will not remove original
+ * files or directory.
+ */
 @Entity
-public class RemovingTask extends GalleryTask
+public class GalleryClensingTask extends GalleryTask
 {
     @Autowired
     @Transient
@@ -20,7 +24,7 @@ public class RemovingTask extends GalleryTask
         galleryService.getAllFull(category).forEach(gal -> {
             if (!galleryService.checkGallerySanity(gal))
             {
-                galleryService.hardDelete(gal.getId());
+                galleryService.softDelete(gal.getId());
             }
         });
     }

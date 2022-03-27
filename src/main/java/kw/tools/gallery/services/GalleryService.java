@@ -42,7 +42,9 @@ public class GalleryService
     private String fileViewerCommand;
 
     /**
-     * Delete all the stored data related to the gallery and also <strong>all original files</strong>.
+     * Delete all the stored data related to the gallery and also <strong>all original files and the directory</strong>. <br />
+     * It should not be ever called from a batch process for safety of your files - it <strong>will</strong> remove all non-image
+     * files from the gallery.
      */
     @Transactional
     public void hardDelete(String galId)

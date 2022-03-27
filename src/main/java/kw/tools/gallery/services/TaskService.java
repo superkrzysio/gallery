@@ -124,8 +124,24 @@ public class TaskService
      * Create and save a task, which will remove DB entries for galleries that no longer exist on disk.
      * Just a delegate to lower layer.
      */
-    public void createRemovingTask(String repoId)
+    public void createGalleryClensingTask(String repoId)
     {
-        taskRepository.save(taskFactory.createRemovingTask(repoId));
+        taskRepository.save(taskFactory.createGalleryClensingTask(repoId));
+    }
+
+    /**
+     * Delete a task. Task will not be deleted if picked up by task engine (running or queued).
+     */
+    public void delete(Task task)
+    {
+        if (List.of(Task.Status.FINISHED, Task.Status.ABORTED, Task.Status.RUNNABLE, Task.Status.ERROR).contains(task.getStatus()))
+        {
+            taskRepository.delete(task);
+        }
+    }
+
+    public void createRepositoryRemovingTask(String repoId)
+    {
+        taskRepository.save(taskFactory.createRepositoryRemovingTask(repoId));
     }
 }
