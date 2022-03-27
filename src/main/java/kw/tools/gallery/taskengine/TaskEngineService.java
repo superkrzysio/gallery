@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  * Even bigger TODO: Possibly introduce transactions for tasks with some rollback logic
  * Other TODO: Implement task interruption to make use of ABORTED status and shutdownNow()
  * Moar TODO: Introduce @Idempotent annotation for tasks, marking them rerunnable.
+ * Even moar TODO: task dependencies - do not queue a task until some other(s) are finished = a primitive business process
  */
 @Service
 public class TaskEngineService

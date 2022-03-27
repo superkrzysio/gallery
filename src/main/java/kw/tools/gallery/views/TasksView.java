@@ -1,5 +1,6 @@
 package kw.tools.gallery.views;
 
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.HtmlComponent;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -74,6 +75,9 @@ public class TasksView extends VerticalLayout implements HasUrlParameter<String>
         filterHasMessages.setEnabled(true);
         filterHasMessages.addValueChangeListener(e -> refreshGridControls());
 
+        Button clearTasksButton = new Button("Remove visible");
+        clearTasksButton.addClickListener(this::removeVisible);
+
         currentTasksGrid = new Grid<>();
         currentTasksGrid.setSelectionMode(Grid.SelectionMode.NONE);
         currentTasksGrid.addColumn(Task::getName).setHeader("Thread name");
@@ -98,11 +102,17 @@ public class TasksView extends VerticalLayout implements HasUrlParameter<String>
         add(progressBar);
 
         HorizontalLayout gridControls = new HorizontalLayout(refreshThreadsButton, filterCreated, filterRunning,
-                filterFinished, filterError, filterHasMessages);
+                filterFinished, filterError, filterHasMessages, clearTasksButton);
         gridControls.setAlignItems(Alignment.CENTER);
         add(gridControls);
 
         add(currentTasksGrid);
+    }
+
+    private void removeVisible(ClickEvent<Button> buttonClickEvent)
+    {
+        filterTasks().forEach(taskService::delete);
+        refreshGridControls();
     }
 
     @Override

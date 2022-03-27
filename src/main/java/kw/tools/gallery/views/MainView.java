@@ -108,8 +108,6 @@ public class MainView extends VerticalLayout
                 .setFlexGrow(0).setResizable(true).setComparator(Repository::getId);
         repositoryGrid.setWidth(50, Unit.PERCENTAGE);
 
-        // todo: add status column
-
         refreshGrid();
 
         add(repositoryGrid);

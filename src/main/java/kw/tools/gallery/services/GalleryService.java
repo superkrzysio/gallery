@@ -16,6 +16,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
 /**
@@ -133,19 +134,17 @@ public class GalleryService
     }
 
     /**
-     * TODO: switch to soft delete and do not delete all with a service, call softDelete from a task
+     * Call a system command to open a file browser for the given path. Due to dumb {@link StringTokenizer} used by exec(),
+     * paths with spaces will not work. <br />
+     * Obviously, it should never be exposed to the internet.
      */
-    public void deleteAll(String repoId)
-    {
-        galleryRepository.deleteByRepositoryId(repoId);
-    }
-
     public void openInFileBrowser(String path)
     {
-        // this application is not meant to be exposed to the internet
         try
         {
-            Runtime.getRuntime().exec(String.format(fileViewerCommand, path));
+            String cmd = String.format(fileViewerCommand, path);
+            LOG.info("Opening file browser: {}", cmd);
+            Runtime.getRuntime().exec(cmd);
         } catch (IOException e)
         {
             throw new UncheckedIOException(e);
