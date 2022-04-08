@@ -8,6 +8,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -70,10 +71,14 @@ public class MainView extends VerticalLayout
         repositoryGrid.setHeight(100, Unit.PERCENTAGE);
 
         repositoryGrid.addComponentColumn(repo -> {
-            Anchor a = new Anchor();
-            a.setHref("/repository/" + repo.getId());
-            a.setText(repo.getId());
-            return a;
+            Span repoName = new Span(repo.getId());
+            Anchor multigalLink = new Anchor();
+            multigalLink.setHref("/grid-view/" + repo.getId());
+            multigalLink.setText("grid view");
+            Anchor singleGalLink = new Anchor();
+            singleGalLink.setHref("/single-view?repository=" + repo.getId());
+            singleGalLink.setText("single view");
+            return new Span(repoName, new Span(" | "), multigalLink, new Span(" | "), singleGalLink);
         }).setKey("name").setHeader("Name").setSortable(true).setAutoWidth(true)
                 .setFlexGrow(1).setResizable(true).setComparator(Repository::getId);
 

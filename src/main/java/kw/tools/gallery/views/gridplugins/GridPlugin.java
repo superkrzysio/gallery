@@ -8,7 +8,8 @@ import java.util.Optional;
 /**
  * Controls for each gallery row are implemented as "plugin", which provides fully featured {@link Component}
  * including event listeners.<br />
- * Any additional Gallery fields used by plugin (e.g. <tt>rating</tt> column) must be added separately to Gallery entity.
+ * Any additional Gallery fields used by plugin (e.g. <tt>rating</tt> column) must be added separately to Gallery entity.<br/>
+ * Plugin objects are stateless, they generate data on demand (components, callbacks, etc).
  */
 public interface GridPlugin
 {

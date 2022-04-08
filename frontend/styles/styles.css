@@ -4,9 +4,21 @@
     color: grey;
 }
 
+h1 span.gallery-path
+{
+    font-weight: normal;
+    vertical-align: middle;
+    margin-left: 20px;
+}
+
 .thumb {
     border-width: 2px;
     border-color: white;
     border-style: solid;
     height: 100%;
+}
+
+h1
+{
+    margin: 0;
 }

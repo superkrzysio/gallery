@@ -11,12 +11,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
 /**
@@ -82,12 +79,7 @@ public class GalleryService
         List<Gallery> galleries = galleryRepository.findByRepositoryId(repoId);
         for (Gallery gal : galleries)
         {
-            gal.setThumbnails(
-                    imageAccessor.getThumbs(repoId, gal.getId())
-                            .stream()
-                            .map(thumb -> cdnService.getCdnUrl(repoId, gal.getId(), thumb))
-                            .collect(Collectors.toList())
-            );
+            setThumbs(gal);
         }
         return galleries;
     }
@@ -133,23 +125,6 @@ public class GalleryService
         return galleryRepository.countByRepositoryId(id);
     }
 
-    /**
-     * Call a system command to open a file browser for the given path. Due to dumb {@link StringTokenizer} used by exec(),
-     * paths with spaces will not work. <br />
-     * Obviously, it should never be exposed to the internet.
-     */
-    public void openInFileBrowser(String path)
-    {
-        try
-        {
-            String cmd = String.format(fileViewerCommand, path);
-            LOG.info("Opening file browser: {}", cmd);
-            Runtime.getRuntime().exec(cmd);
-        } catch (IOException e)
-        {
-            throw new UncheckedIOException(e);
-        }
-    }
 
     /**
      * Get path to the thumbnail directory for the given gallery.
@@ -184,5 +159,29 @@ public class GalleryService
         Gallery gallery = galleryRepository.getById(galId);
         gallery.setRating(rating);
         galleryRepository.save(gallery);
+    }
+
+    public Optional<Gallery> get(String id)
+    {
+        return galleryRepository.findById(id);
+    }
+
+    public Optional<Gallery> getFull(String id)
+    {
+        Optional<Gallery> gal = get(id);
+        if (gal.isEmpty())
+            return gal;
+        setThumbs(gal.get());
+        return gal;
+    }
+
+    private void setThumbs(Gallery gal)
+    {
+        gal.setThumbnails(
+                imageAccessor.getThumbs(gal.getRepositoryId(), gal.getId())
+                        .stream()
+                        .map(thumb -> cdnService.getCdnUrl(gal.getRepositoryId(), gal.getId(), thumb))
+                        .collect(Collectors.toList())
+        );
     }
 }

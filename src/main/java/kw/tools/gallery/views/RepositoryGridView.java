@@ -12,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
+import kw.tools.gallery.Utils;
 import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.services.GalleryService;
@@ -22,10 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Optional;
 
-@Route("repository")
+@Route("grid-view")
 @CssImport("styles/styles.css")
 @CssImport("styles/rating.css")
-public class RepositoryView extends VerticalLayout implements HasUrlParameter<String>
+public class RepositoryGridView extends VerticalLayout implements HasUrlParameter<String>
 {
     @Autowired
     private RepositoryService repositoryService;
@@ -41,7 +42,7 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
 
     private final H2 repositoryTitle = new H2();
 
-    public RepositoryView(@Autowired List<GridPlugin> gplugins)
+    public RepositoryGridView(@Autowired List<GridPlugin> gplugins)
     {
         this.gridPlugins = gplugins;
         setHeight(100, Unit.PERCENTAGE);
@@ -57,8 +58,11 @@ public class RepositoryView extends VerticalLayout implements HasUrlParameter<St
             headersRow.add(new Span(gallery.getName()));
             Span pathSpan = new Span(gallery.getPath());
             pathSpan.addClassName("gallery-path");
-            pathSpan.addClickListener(e -> galleryService.openInFileBrowser(gallery.getPath()));
+            pathSpan.addClickListener(e -> Utils.openInFileBrowser(gallery.getPath()));
             headersRow.add(pathSpan);
+            Span idSpan = new Span(gallery.getId());
+            idSpan.addClassName("gallery-path");
+            headersRow.add(idSpan);
             headersRow.add(new Span("Images: " + gallery.getPictureCount()));
             HorizontalLayout imgRow = new HorizontalLayout();
             for (String imgSrc : gallery.getThumbnails())
