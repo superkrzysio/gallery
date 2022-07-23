@@ -13,7 +13,7 @@ import java.util.StringTokenizer;
  * Global utils. <br/>
  * Use this class statically, do not autowire.
  */
-@Component          // workaround to populate static fields
+@Component          // hack to populate static fields from properties
 public class Utils
 {
     private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
