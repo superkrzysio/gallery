@@ -5,6 +5,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
@@ -15,18 +16,17 @@ import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.services.GalleryService;
 import kw.tools.gallery.services.RepositoryService;
-import kw.tools.gallery.views.components.GalleryRow;
-import kw.tools.gallery.views.gridplugins.GridPlugin;
+import kw.tools.gallery.views.components.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Route("single-view")
 public class RepositorySingleView extends VerticalLayout implements HasUrlParameter<String>
 {
+    private static final Logger LOG = LoggerFactory.getLogger(RepositorySingleView.class);
     private static final String REPOSITORY_PARAM_KEY = "repository";
 
     @Autowired
@@ -35,20 +35,21 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
     @Autowired
     private GalleryService galleryService;
 
-    private final List<GridPlugin> gridPlugins;
-
     private GalleryRow galleryRowRichComponent;
     private Gallery currentGallery;
     private ListIterator<Gallery> galleryIterator;
 
     private final Button nextButton;
     private final Button prevButton;
+    private final Rating rating;
+    private final DeleteButton deleteButton;
+    private final HorizontalLayout controlsRow;
+    private final VerticalLayout galleryControlsVerticalWrapper;
+    private final ModifiableGalleryRowContext currentRowCtx;
 
-    // todo: bugs: deleting does not delete from iterator; rating does not refresh in current iterator until page refresh,
-    //      in general retarded plugin handling
-    public RepositorySingleView(@Autowired List<GridPlugin> gplugins)
+    // todo: bugs: when setting a rating, all next galleries with lower rating will appear to have this rating
+    public RepositorySingleView()
     {
-        this.gridPlugins = gplugins;
         setHeight(100, Unit.PERCENTAGE);
         setAlignItems(Alignment.CENTER);
 
@@ -66,15 +67,35 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         galleryRowRichComponent = GalleryRow.EMPTY;
         add(galleryRowRichComponent);
 
-        // prototype, layout will come later
-        gridPlugins.forEach(plugin -> plugin.getHeader().ifPresent(this::add));
+        // controls row
+        // attach an empty context, which will be modified later
+        currentRowCtx = new ModifiableGalleryRowContext();
+        currentRowCtx.setActions(new DefaultCurrentRowActions());
+        controlsRow = new HorizontalLayout();
+        controlsRow.setAlignItems(Alignment.CENTER);
+        galleryControlsVerticalWrapper = new VerticalLayout();
+        rating = new Rating(currentRowCtx);
+        deleteButton = new DeleteButton(currentRowCtx);
+        galleryControlsVerticalWrapper.add(rating);
+        galleryControlsVerticalWrapper.add(deleteButton);
+        galleryControlsVerticalWrapper.setAlignItems(FlexComponent.Alignment.CENTER);
+        controlsRow.add(galleryControlsVerticalWrapper);
+        add(controlsRow);
     }
 
     private void nextGallery(ClickEvent<Button> buttonClickEvent)
     {
         if (galleryIterator.hasNext())
         {
+            Gallery old = currentGallery;
             currentGallery = galleryIterator.next();
+            LOG.debug("NextGallery: Switching from '{}' (id: {}) to '{}' (id: {})", old.getName(), old.hashCode(),
+                    currentGallery.getName(), currentGallery.hashCode());
+            if (currentGallery == old)      // fix for listIterator behaviour when alternating next() and previous()
+            {
+                nextGallery(buttonClickEvent);
+                return;
+            }
             refreshNavButtons();
             loadGallery();
         }
@@ -84,7 +105,15 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
     {
         if (galleryIterator.hasPrevious())
         {
+            Gallery old = currentGallery;
             currentGallery = galleryIterator.previous();
+            LOG.debug("PrevGallery: Switching from '{}' (id: {}) to '{}' (id: {})", old.getName(), old.hashCode(),
+                    currentGallery.getName(), currentGallery.hashCode());
+            if (currentGallery == old)    // fix for listIterator behaviour when alternating next() and previous()
+            {
+                prevGallery(buttonClickEvent);
+                return;
+            }
             refreshNavButtons();
             loadGallery();
         }
@@ -98,9 +127,12 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
 
     private void loadGallery()
     {
-        GalleryRow galleryRow = new GalleryRow(currentGallery, gridPlugins);
+        GalleryRow galleryRow = new GalleryRow(currentGallery);
         replace(galleryRowRichComponent, galleryRow);
         galleryRowRichComponent = galleryRow;
+        currentRowCtx.setGallery(currentGallery);
+        rating.loadRating();
+        deleteButton.reenable();
     }
 
     @Override
@@ -141,4 +173,32 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         throw new IllegalArgumentException("Redirect in progress");
     }
 
+    private class DefaultCurrentRowActions implements CurrentRowActions
+    {
+        @Override
+        public void nextPage()
+        {
+            nextGallery(null);
+        }
+
+        @Override
+        public void filter()
+        {
+
+        }
+
+        @Override
+        public void hardDelete()
+        {
+            galleryIterator.remove();
+            galleryService.hardDelete(currentGallery.getId());
+        }
+
+        @Override
+        public void setRating(int rating)
+        {
+            currentGallery.setRating(rating);
+            galleryService.setRating(currentGallery.getId(), rating);
+        }
+    }
 }

@@ -17,7 +17,6 @@ import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.models.Repository;
 import kw.tools.gallery.services.GalleryService;
 import kw.tools.gallery.services.RepositoryService;
-import kw.tools.gallery.views.gridplugins.GridPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -34,22 +33,18 @@ public class RepositoryGridView extends VerticalLayout implements HasUrlParamete
     @Autowired
     private GalleryService galleryService;
 
-    private final List<GridPlugin> gridPlugins;
-
     private String repoId;
 
     private final Grid<Gallery> masterGrid = new Grid<>();
 
     private final H2 repositoryTitle = new H2();
 
-    public RepositoryGridView(@Autowired List<GridPlugin> gplugins)
+    public RepositoryGridView()
     {
-        this.gridPlugins = gplugins;
         setHeight(100, Unit.PERCENTAGE);
 
         add(new Anchor("/", "Back"));
         add(repositoryTitle);
-        gridPlugins.forEach(plugin -> plugin.getHeader().ifPresent(this::add));
 
         masterGrid.setHeight(100, Unit.PERCENTAGE);
         masterGrid.setSelectionMode(Grid.SelectionMode.NONE);
@@ -73,14 +68,19 @@ public class RepositoryGridView extends VerticalLayout implements HasUrlParamete
             }
             return new VerticalLayout(headersRow, imgRow);
         }).setKey("gallery").setAutoWidth(true).setComparator(Gallery::getId).setSortable(true);
-
-        masterGrid.addComponentColumn(gallery -> {
-            VerticalLayout verticalWrapper = new VerticalLayout();
-            gridPlugins.forEach(plugin -> plugin.getComponent(gallery).ifPresent(verticalWrapper::add));
-            verticalWrapper.setAlignItems(Alignment.CENTER);
-            return verticalWrapper;
-        }).setKey("actions").setAutoWidth(false).setFlexGrow(1);
+        // todo
+//        masterGrid.addComponentColumn(gallery -> {
+//            VerticalLayout verticalWrapper = new VerticalLayout();
+//            gridPlugins.forEach(plugin -> plugin.getComponent(gallery, this::afterPluginAction).ifPresent(verticalWrapper::add));
+//            verticalWrapper.setAlignItems(Alignment.CENTER);
+//            return verticalWrapper;
+//        }).setKey("actions").setAutoWidth(false).setFlexGrow(1);
         add(masterGrid);
+    }
+
+    public void afterPluginAction(Gallery gal)
+    {
+        // nothing to do, Vaadin grid does not support row manipulation
     }
 
     @Override

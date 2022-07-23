@@ -3,16 +3,12 @@ package kw.tools.gallery.views.components;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.data.binder.Binder;
 import kw.tools.gallery.Utils;
 import kw.tools.gallery.models.Gallery;
-import kw.tools.gallery.views.gridplugins.GridPlugin;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class GalleryRow extends VerticalLayout
@@ -23,23 +19,17 @@ public class GalleryRow extends VerticalLayout
     private final Span id;
     private final Span pictureCount;
     private final List<Image> images;
-    private final List<GridPlugin> plugins;
-
 
     private final HorizontalLayout nameRow;
     private final HorizontalLayout imgRow;
     private final HorizontalLayout metaRow;
-    private final HorizontalLayout controlsRow;
-    private final VerticalLayout galleryControlsVerticalWrapper;
 
-    private Binder<Gallery> binder;
 
-    public static final GalleryRow EMPTY = new GalleryRow(new Gallery(), Collections.emptyList());
+    public static final GalleryRow EMPTY = new GalleryRow(new Gallery());
 
-    public GalleryRow(Gallery gal, List<GridPlugin> pls)
+    public GalleryRow(Gallery gal)
     {
         this.gallery = gal;
-        this.plugins = pls;
 
         // name row: gallery name and id
         nameRow = new HorizontalLayout();
@@ -74,19 +64,5 @@ public class GalleryRow extends VerticalLayout
             images.add(img);
         }
         add(imgRow);
-
-        // controls row: plugins
-        controlsRow = new HorizontalLayout();
-        controlsRow.setAlignItems(Alignment.CENTER);
-        galleryControlsVerticalWrapper = new VerticalLayout();
-        plugins.forEach(plugin -> plugin.getComponent(gallery).ifPresent(galleryControlsVerticalWrapper::add));
-        galleryControlsVerticalWrapper.setAlignItems(FlexComponent.Alignment.CENTER);
-        imgRow.add(galleryControlsVerticalWrapper);
-        controlsRow.add(galleryControlsVerticalWrapper);
-        add(controlsRow);
-
-//        binder.bin
-
-
     }
 }
