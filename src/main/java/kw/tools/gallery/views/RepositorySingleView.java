@@ -43,8 +43,7 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
     private final Button prevButton;
     private final Rating rating;
     private final DeleteButton deleteButton;
-
-    // todo: bugs: when setting a rating, all next galleries with lower rating will appear to have this rating
+    
     public RepositorySingleView()
     {
         setHeight(100, Unit.PERCENTAGE);
@@ -137,6 +136,7 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         currentGallery = galleryIterator.next();
         refreshNavButtons();
         loadGallery();
+        afterPageChange();
     }
 
     private Repository getRepoOrRedirect(final Map<String, List<String>> queryParams)

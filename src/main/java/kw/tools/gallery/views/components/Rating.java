@@ -1,9 +1,6 @@
 package kw.tools.gallery.views.components;
 
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Input;
-import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.*;
 import kw.tools.gallery.models.Gallery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +27,14 @@ public class Rating extends Div implements ComponentVisitable
 
         galleryCtx = new EmptyGallery();
 
-        // https://codepen.io/melnik909/pen/OvaxVY snippet migrated to Vaadin and somehow simplified
         this.addClassName("rating");
-//        div.getElement().setProperty("data-id", ctx.getId());
+        redrawRadios();
+    }
+
+    private void redrawRadios()
+    {
+        this.removeAll();
+        // https://codepen.io/melnik909/pen/OvaxVY snippet migrated to Vaadin and somehow simplified
         for (int x = 1; x <= MAX_RATING; x++)
         {
             Input radio = prepareRadio(x);
@@ -77,13 +79,10 @@ public class Rating extends Div implements ComponentVisitable
     {
         int rating = galleryCtx.getRating();
         LOG.debug("Loading rating {} for gallery '{}'", rating, galleryCtx.getName());
-        for (int i = 0; i < MAX_RATING; i++)
-        {
-            radios[i].getElement().removeProperty("checked");
-        }
+        redrawRadios();
         if (rating > 0)
         {
-            radios[rating-1].getElement().setProperty("checked", "checked");
+            radios[rating-1].getElement().setProperty("checked", true);
         }
     }
 
@@ -92,7 +91,6 @@ public class Rating extends Div implements ComponentVisitable
         LOG.debug("Setting rating {} for gallery {}", rating, galleryCtx.getName());
         ctx.setRating(rating);
         ctx.nextPage();
-        redrawRating();
     }
 
     @Override
