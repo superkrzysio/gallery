@@ -1,6 +1,5 @@
 package kw.tools.gallery.views;
 
-import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -22,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 @Route("single-view")
 public class RepositorySingleView extends VerticalLayout implements HasUrlParameter<String>
@@ -43,9 +43,6 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
     private final Button prevButton;
     private final Rating rating;
     private final DeleteButton deleteButton;
-    private final HorizontalLayout controlsRow;
-    private final VerticalLayout galleryControlsVerticalWrapper;
-    private final ModifiableGalleryRowContext currentRowCtx;
 
     // todo: bugs: when setting a rating, all next galleries with lower rating will appear to have this rating
     public RepositorySingleView()
@@ -58,9 +55,9 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         add(backLink);
 
         prevButton = new Button("prev");
-        prevButton.addClickListener(this::prevGallery);
+        prevButton.addClickListener(evt -> switchPage(() -> galleryIterator.hasPrevious(), () -> galleryIterator.previous()));
         nextButton = new Button("next");
-        nextButton.addClickListener(this::nextGallery);
+        nextButton.addClickListener(evt -> switchPage(() -> galleryIterator.hasNext(), () -> galleryIterator.next()));
         HorizontalLayout nav = new HorizontalLayout(prevButton, nextButton);
         add(nav);
 
@@ -69,13 +66,12 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
 
         // controls row
         // attach an empty context, which will be modified later
-        currentRowCtx = new ModifiableGalleryRowContext();
-        currentRowCtx.setActions(new DefaultCurrentRowActions());
-        controlsRow = new HorizontalLayout();
+        CurrentRowActions currentRowActions = new DefaultCurrentRowActions();
+        HorizontalLayout controlsRow = new HorizontalLayout();
         controlsRow.setAlignItems(Alignment.CENTER);
-        galleryControlsVerticalWrapper = new VerticalLayout();
-        rating = new Rating(currentRowCtx);
-        deleteButton = new DeleteButton(currentRowCtx);
+        VerticalLayout galleryControlsVerticalWrapper = new VerticalLayout();
+        rating = new Rating(currentRowActions);
+        deleteButton = new DeleteButton(currentRowActions);
         galleryControlsVerticalWrapper.add(rating);
         galleryControlsVerticalWrapper.add(deleteButton);
         galleryControlsVerticalWrapper.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -83,39 +79,26 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         add(controlsRow);
     }
 
-    private void nextGallery(ClickEvent<Button> buttonClickEvent)
+    private void switchPage(Supplier<Boolean> checkNext, Supplier<Gallery> getNext)
     {
-        if (galleryIterator.hasNext())
+        if(checkNext.get())
         {
             Gallery old = currentGallery;
-            currentGallery = galleryIterator.next();
-            LOG.debug("NextGallery: Switching from '{}' (id: {}) to '{}' (id: {})", old.getName(), old.hashCode(),
+            currentGallery = getNext.get();
+            LOG.debug("Switching from '{}' (id: {}) to '{}' (id: {})", old.getName(), old.hashCode(),
                     currentGallery.getName(), currentGallery.hashCode());
             if (currentGallery == old)      // fix for listIterator behaviour when alternating next() and previous()
             {
-                nextGallery(buttonClickEvent);
+                switchPage(checkNext, getNext);
                 return;
             }
             refreshNavButtons();
             loadGallery();
+            afterPageChange();
         }
-    }
-
-    private void prevGallery(ClickEvent<Button> buttonClickEvent)
-    {
-        if (galleryIterator.hasPrevious())
+        else
         {
-            Gallery old = currentGallery;
-            currentGallery = galleryIterator.previous();
-            LOG.debug("PrevGallery: Switching from '{}' (id: {}) to '{}' (id: {})", old.getName(), old.hashCode(),
-                    currentGallery.getName(), currentGallery.hashCode());
-            if (currentGallery == old)    // fix for listIterator behaviour when alternating next() and previous()
-            {
-                prevGallery(buttonClickEvent);
-                return;
-            }
             refreshNavButtons();
-            loadGallery();
         }
     }
 
@@ -130,9 +113,13 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         GalleryRow galleryRow = new GalleryRow(currentGallery);
         replace(galleryRowRichComponent, galleryRow);
         galleryRowRichComponent = galleryRow;
-        currentRowCtx.setGallery(currentGallery);
-        rating.loadRating();
-        deleteButton.reenable();
+    }
+
+    private void afterPageChange()
+    {
+        OnPageChangeVisitor onPageChange = new OnPageChangeVisitor(currentGallery);
+        rating.accept(onPageChange);
+        deleteButton.accept(onPageChange);
     }
 
     @Override
@@ -158,11 +145,13 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         if (repos == null || repos.size() > 1)
         {
             redirectHome();
+            return null;
         }
         Optional<Repository> maybeRepo = repositoryService.get(repos.get(0));
         if (maybeRepo.isEmpty())
         {
             redirectHome();
+            return null;
         }
         return maybeRepo.get();
     }
@@ -178,7 +167,7 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         @Override
         public void nextPage()
         {
-            nextGallery(null);
+            switchPage(() -> galleryIterator.hasNext(), () -> galleryIterator.next());
         }
 
         @Override

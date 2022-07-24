@@ -4,11 +4,11 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.VaadinIcon;
 
-public class DeleteButton extends Button
+public class DeleteButton extends Button implements ComponentVisitable
 {
-    private final GalleryRowContext ctx;
+    private final CurrentRowActions ctx;
 
-    public DeleteButton(GalleryRowContext ctx)
+    public DeleteButton(CurrentRowActions ctx)
     {
         this.ctx = ctx;
         setIcon(VaadinIcon.TRASH.create());
@@ -17,23 +17,24 @@ public class DeleteButton extends Button
         addClickListener(e -> deleteGallery());
     }
 
-    public void reenable()
-    {
-        this.setEnabled(true);
-    }
-
     private void deleteGallery()
     {
         UI.getCurrent().getPage().executeJs("return confirm(\"Are you sure you want to DELETE THIS GALLERY FOLDER " +
                 "PERMANENTLY FROM THE DISK?\")").then(decision -> {
             if (decision.asBoolean())
             {
-                ctx.getActions().hardDelete();
+                ctx.hardDelete();
                 this.setEnabled(false);
             }
-            ctx.getActions().nextPage();
+            ctx.nextPage();
         });
 
+    }
+
+    @Override
+    public void accept(OnPageChangeVisitor onPageChangeVisitor)
+    {
+        onPageChangeVisitor.visit(this);
     }
 
 }

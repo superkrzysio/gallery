@@ -8,6 +8,7 @@ public class TaskFactory
     /**
      * Creates a task that will generate thumbs from the <tt>path</tt> folder.
      * Further generation configuration will be wired at runtime.
+     *
      * @see ThumbnailingTask
      */
     public ThumbnailingTask createThumbnailingTask(String repoId, String source, String target)
@@ -21,6 +22,7 @@ public class TaskFactory
 
     /**
      * Creates a task that will crawl the directory structure and perform further actions.
+     *
      * @see ScanningTask
      */
     public ScanningTask createScanningTask(String category, String path)
@@ -33,6 +35,7 @@ public class TaskFactory
 
     /**
      * Creates a task that will remove galleries that are no longer valid on disk.
+     *
      * @see GalleryClensingTask
      */
     public GalleryClensingTask createGalleryClensingTask(String repoId)
@@ -44,6 +47,7 @@ public class TaskFactory
 
     /**
      * Creates a task that will fully remove a repository and all related data.
+     *
      * @see RepositoryRemovingTask
      */
     public RepositoryRemovingTask createRepositoryRemovingTask(String repoId)
