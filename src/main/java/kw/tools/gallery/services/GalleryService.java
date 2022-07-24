@@ -3,6 +3,8 @@ package kw.tools.gallery.services;
 import kw.tools.gallery.CacheUtils;
 import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.persistence.GalleryRepository;
+import kw.tools.gallery.persistence.GallerySearchCriteria;
+import kw.tools.gallery.persistence.GallerySearchSpecification;
 import kw.tools.gallery.processing.ImageAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +81,18 @@ public class GalleryService
             setThumbs(gal);
         }
         return galleries;
+    }
+
+    public List<Gallery> search(GallerySearchCriteria... criteria)
+    {
+        return search(List.of(criteria));
+    }
+
+    public List<Gallery> search(List<GallerySearchCriteria> criteria)
+    {
+        GallerySearchSpecification specification = new GallerySearchSpecification();
+        specification.addCriteria(criteria);
+        return galleryRepository.findAll(specification);
     }
 
     /**
@@ -172,7 +186,7 @@ public class GalleryService
         return gal;
     }
 
-    private void setThumbs(Gallery gal)
+    public void setThumbs(Gallery gal)
     {
         gal.setThumbnails(
                 imageAccessor.getThumbs(gal.getRepositoryId(), gal.getId())
@@ -181,4 +195,5 @@ public class GalleryService
                         .collect(Collectors.toList())
         );
     }
+
 }

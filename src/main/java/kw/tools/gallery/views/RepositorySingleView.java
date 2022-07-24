@@ -13,6 +13,7 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import kw.tools.gallery.models.Gallery;
 import kw.tools.gallery.models.Repository;
+import kw.tools.gallery.persistence.GallerySearchCriteria;
 import kw.tools.gallery.services.GalleryService;
 import kw.tools.gallery.services.RepositoryService;
 import kw.tools.gallery.views.components.*;
@@ -28,6 +29,7 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
 {
     private static final Logger LOG = LoggerFactory.getLogger(RepositorySingleView.class);
     private static final String REPOSITORY_PARAM_KEY = "repository";
+    private static final String RATED_PARAM_KEY = "rated";
 
     @Autowired
     private RepositoryService repositoryService;
@@ -43,7 +45,8 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
     private final Button prevButton;
     private final Rating rating;
     private final DeleteButton deleteButton;
-    
+//    private final FilterByRated filterByRated;
+
     public RepositorySingleView()
     {
         setHeight(100, Unit.PERCENTAGE);
@@ -59,6 +62,10 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         nextButton.addClickListener(evt -> switchPage(() -> galleryIterator.hasNext(), () -> galleryIterator.next()));
         HorizontalLayout nav = new HorizontalLayout(prevButton, nextButton);
         add(nav);
+
+//        filterByRated = new FilterByRated();
+//        HorizontalLayout filters = new HorizontalLayout(filterByRated);
+//        add(filters);
 
         galleryRowRichComponent = GalleryRow.EMPTY;
         add(galleryRowRichComponent);
@@ -80,7 +87,7 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
 
     private void switchPage(Supplier<Boolean> checkNext, Supplier<Gallery> getNext)
     {
-        if(checkNext.get())
+        if (checkNext.get())
         {
             Gallery old = currentGallery;
             currentGallery = getNext.get();
@@ -94,8 +101,7 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
             refreshNavButtons();
             loadGallery();
             afterPageChange();
-        }
-        else
+        } else
         {
             refreshNavButtons();
         }
@@ -127,8 +133,20 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         Map<String, List<String>> queryParams = beforeEvent.getLocation().getQueryParameters().getParameters();
 
         Repository repository = getRepoOrRedirect(queryParams);
+        if (repository == null)
+        {
+            return;
+        }
 
-        galleryIterator = galleryService.getAllFull(repository.getId()).listIterator();
+        GallerySearchCriteria.RatingSearchMode rated = getRatedFilter(queryParams);
+
+        List<Gallery> galleries = galleryService.search(
+                new GallerySearchCriteria().withRepository(repository.getId()).withRating(rated)
+        );
+        galleries.forEach(gal -> galleryService.setThumbs(gal));
+
+        galleryIterator = galleries.listIterator();
+
         if (!galleryIterator.hasNext())     // do not honor empty repositories
         {
             redirectHome();
@@ -137,6 +155,22 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         refreshNavButtons();
         loadGallery();
         afterPageChange();
+    }
+
+    private GallerySearchCriteria.RatingSearchMode getRatedFilter(Map<String, List<String>> queryParams)
+    {
+        List<String> rated = queryParams.get(RATED_PARAM_KEY);
+        if (rated == null || rated.isEmpty())
+        {
+            return GallerySearchCriteria.RatingSearchMode.NONE;
+        }
+        try
+        {
+            return GallerySearchCriteria.RatingSearchMode.valueOf(rated.get(0).toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e)
+        {
+            return GallerySearchCriteria.RatingSearchMode.NONE;
+        }
     }
 
     private Repository getRepoOrRedirect(final Map<String, List<String>> queryParams)
@@ -155,6 +189,7 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         }
         return maybeRepo.get();
     }
+
 
     private void redirectHome()
     {
