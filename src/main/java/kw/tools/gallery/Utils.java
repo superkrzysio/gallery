@@ -20,8 +20,10 @@ public class Utils
 
     private static String fileViewerCommand;
 
-    @Value("${system.file.viewer.command}")
-    private String fileViewerCommandTemp;
+    public Utils(@Value("${system.file.viewer.command}") String fileViewerCommandTemp)
+    {
+        Utils.fileViewerCommand = fileViewerCommandTemp;
+    }
 
     /**
      * Call a system command to open a file browser for the given path. Due to dumb {@link StringTokenizer} used by exec(),
@@ -32,17 +34,11 @@ public class Utils
     {
         try
         {
-            String cmd = String.format(fileViewerCommand, path);
-            LOG.info("Opening file browser: {}", cmd);
+            String[] cmd = new String[] { fileViewerCommand, path };
             Runtime.getRuntime().exec(cmd);
         } catch (IOException e)
         {
             throw new UncheckedIOException(e);
         }
-    }
-
-    public void setFileViewerCommandTemp(String fileViewerCommandTemp)
-    {
-        Utils.fileViewerCommand = fileViewerCommandTemp;
     }
 }
