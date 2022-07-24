@@ -23,19 +23,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Route("single-view")
 public class RepositorySingleView extends VerticalLayout implements HasUrlParameter<String>
 {
+    public static final String RATED_PARAM_KEY = "rated";
+    public static final String REPOSITORY_PARAM_KEY = "repository";
     private static final Logger LOG = LoggerFactory.getLogger(RepositorySingleView.class);
-    private static final String REPOSITORY_PARAM_KEY = "repository";
-    private static final String RATED_PARAM_KEY = "rated";
 
     @Autowired
     private RepositoryService repositoryService;
 
     @Autowired
     private GalleryService galleryService;
+
+    private Map<String, List<String>> queryParams;
 
     private GalleryRow galleryRowRichComponent;
     private Gallery currentGallery;
@@ -45,7 +48,7 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
     private final Button prevButton;
     private final Rating rating;
     private final DeleteButton deleteButton;
-//    private final FilterByRated filterByRated;
+    private final FilterByRated filterByRated;
 
     public RepositorySingleView()
     {
@@ -56,6 +59,8 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         backLink.setWidth(100, Unit.PERCENTAGE);
         add(backLink);
 
+        CurrentRowActions currentRowActions = new DefaultCurrentRowActions();
+
         prevButton = new Button("prev");
         prevButton.addClickListener(evt -> switchPage(() -> galleryIterator.hasPrevious(), () -> galleryIterator.previous()));
         nextButton = new Button("next");
@@ -63,16 +68,16 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         HorizontalLayout nav = new HorizontalLayout(prevButton, nextButton);
         add(nav);
 
-//        filterByRated = new FilterByRated();
-//        HorizontalLayout filters = new HorizontalLayout(filterByRated);
-//        add(filters);
+        filterByRated = new FilterByRated(currentRowActions);
+        HorizontalLayout filters = new HorizontalLayout(filterByRated);
+        add(filters);
 
         galleryRowRichComponent = GalleryRow.EMPTY;
         add(galleryRowRichComponent);
 
         // controls row
         // attach an empty context, which will be modified later
-        CurrentRowActions currentRowActions = new DefaultCurrentRowActions();
+
         HorizontalLayout controlsRow = new HorizontalLayout();
         controlsRow.setAlignItems(Alignment.CENTER);
         VerticalLayout galleryControlsVerticalWrapper = new VerticalLayout();
@@ -130,7 +135,7 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String repo)
     {
-        Map<String, List<String>> queryParams = beforeEvent.getLocation().getQueryParameters().getParameters();
+        queryParams = new HashMap<>(beforeEvent.getLocation().getQueryParameters().getParameters());
 
         Repository repository = getRepoOrRedirect(queryParams);
         if (repository == null)
@@ -155,6 +160,22 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         refreshNavButtons();
         loadGallery();
         afterPageChange();
+    }
+
+    private void reopen()
+    {
+        Map<String, String> flat = new HashMap<>();
+        for (String key : queryParams.keySet())
+        {
+            if (queryParams.get(key).size() > 1)
+            {
+                throw new IllegalArgumentException("List of query params is not supported");
+            }
+            flat.put(key, queryParams.get(key).get(0));
+        }
+
+        String urlparams = flat.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining("&"));
+        this.getUI().get().getPage().setLocation("/single-view?" + urlparams);
     }
 
     private GallerySearchCriteria.RatingSearchMode getRatedFilter(Map<String, List<String>> queryParams)
@@ -206,9 +227,10 @@ public class RepositorySingleView extends VerticalLayout implements HasUrlParame
         }
 
         @Override
-        public void filter()
+        public void filter(String key, String value)
         {
-
+            queryParams.put(key, List.of(value));
+            reopen();
         }
 
         @Override

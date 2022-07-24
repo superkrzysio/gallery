@@ -4,7 +4,21 @@ public class GallerySearchCriteria
 {
     public enum RatingSearchMode
     {
-        ZERO, POSITIVE, NONE
+        ZERO("No rating"),
+        POSITIVE("Rating present"),
+        NONE("Both");
+
+        private final String description;
+
+        RatingSearchMode(String description)
+        {
+            this.description = description;
+        }
+
+        public String getDescription()
+        {
+            return description;
+        }
     }
 
     public String repositoryId;

@@ -7,7 +7,7 @@ public interface CurrentRowActions
 {
     void nextPage();
 
-    void filter();
+    void filter(String key, String value);
 
     void hardDelete();
 
@@ -21,7 +21,7 @@ public interface CurrentRowActions
         }
 
         @Override
-        public void filter()
+        public void filter(String key, String value)
         {
         }
 
